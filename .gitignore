@@ -1,6 +1,22 @@
-.DS_Store
-node_modules
-.env
-npm-debug.log
-build
+# Logs
+logs
+*.log
+
+# Compiled output
 dist
+*.class
+*.js
+*.js.map
+
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+.idea/
+
+# Miscellaneous
+.DS_Store

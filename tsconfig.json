@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "rootDirs": ["src"],
+    "outDir": "dist",
+    "lib": ["es2020", "dom"],
+    "target": "es2020",
+    "module": "NodeNext",
+    "esModuleInterop": true,
+    "types": ["node"],
+  },
+  "exclude": []
+}
