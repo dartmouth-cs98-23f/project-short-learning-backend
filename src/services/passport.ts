@@ -1,8 +1,11 @@
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
+import dotenv from 'dotenv';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 
 import User from '../models/user_model';
+
+dotenv.config();
 
 // Passport set up from CS 52
 

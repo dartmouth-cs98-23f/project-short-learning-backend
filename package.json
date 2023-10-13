@@ -9,6 +9,9 @@
     "clean": "rm -rf dist && mkdir dist && mkdir dist/schema",
     "cleanFull": "rm -rf dist && rm -rf node_modules && rm -rf package-lock.json && mkdir dist && mkdir dist/schema"
   },
+  "compilerOptions": {
+    "typeRoots" : ["./src/types", "./node_modules/@types"]
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
