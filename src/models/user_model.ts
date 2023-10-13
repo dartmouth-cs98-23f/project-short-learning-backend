@@ -11,7 +11,7 @@ const UserSchema = new Schema({
   registrationDate: { type: Date, default: Date.now },
   lastLoginDate: { type: Date, default: Date.now },
   profilePicture: String,
-  onBoarding: String,
+  onBoardingStatus: String,
 }, {
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
