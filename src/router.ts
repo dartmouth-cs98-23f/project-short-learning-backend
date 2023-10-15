@@ -49,6 +49,14 @@ router.get('/users/:id', requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * Get all relationships for a user.
+ * 
+ * Returns all users that have a relationship with the given user (including pending!).
+ * 
+ * Caller should handle filtering or use one of the other endpoints
+ * that promise to return a specific subset of relationships.
+ */
 router.get('/relationships/all/:userId', requireAuth, async (req, res) => {
   try {
     const relationships = await Relationships.getAll(req.params.userId);
@@ -105,6 +113,29 @@ router.get('/relationships/pending/:userId/:direction', requireAuth, async (req,
     }
     
     const relationships = await Relationships.getPending(req.params.userId, direction);
+    res.json(relationships);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+/**
+ * Get connections for a user.
+ * 
+ * Parses the relationships for given user and returns a list of **other**
+ * users that have a relationship with the given user.
+ * 
+ * Filters 
+ */
+router.get('/relationships/connections/:userId/:status', requireAuth, async (req, res) => {
+  try {
+    // get status from req.params.status and make sure it is valid
+    const status = req.params.status.toLowerCase();
+    if (status !== 'accepted' && status !== 'declined' && status !== 'blocked' && status !== 'pending' && status !== 'all') {
+      throw new Error('Invalid status');
+    }
+    
+    const relationships = await Relationships.getConnections(req.params.userId, status);
     res.json(relationships);
   } catch (error) {
     res.status(422).send({ error: error.toString() });
