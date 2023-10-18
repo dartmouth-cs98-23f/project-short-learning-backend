@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import apiRoutes from './router'
+import { videoRouter } from './routes/video_routes'
 import mongoose from 'mongoose'
 import { logger, requestLogger, responseLogger } from './services/logger'
 
@@ -29,5 +30,6 @@ async function runApp() {
 }
 
 app.use('/api', apiRoutes)
+app.use('/videos', videoRouter)
 
 runApp()
