@@ -10,7 +10,10 @@
     "cleanFull": "rm -rf dist && rm -rf node_modules && rm -rf package-lock.json && mkdir dist && mkdir dist/schema"
   },
   "compilerOptions": {
-    "typeRoots" : ["./src/types", "./node_modules/@types"]
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ]
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -23,7 +26,8 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.14",
