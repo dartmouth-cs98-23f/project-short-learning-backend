@@ -1,5 +1,4 @@
 import Relationship from '../models/relationship_model';
-import { Types as MongoTypes } from 'mongoose';
 
 /**
  * Create a new relationship between two users.
@@ -9,8 +8,8 @@ import { Types as MongoTypes } from 'mongoose';
  */
 export const create = async ( 
   { fromUserID, toUserID }: {
-    fromUserID: MongoTypes.ObjectId  // ObjectId,
-    toUserID: MongoTypes.ObjectId,
+    fromUserID: string  // ObjectId,
+    toUserID: string,
   }) => {
   
   const relationship = new Relationship({
@@ -35,6 +34,10 @@ export const update = async ({
   fromUserID, toUserID, status
 }) => {
   try {
+    if (![ 'pending', 'accepted', 'declined', 'blocked' ].includes(status)) {
+      throw new Error('Invalid status');
+    }
+
     const relationship = await Relationship.findOneAndUpdate(
       { fromUserID, toUserID },
       { status, updatedDate: Date.now() },
@@ -54,7 +57,7 @@ export const update = async ({
 export const getAll = async (userID: string, status?: string) => {
   try {
     let relationships;
-    if (status) {
+    if (status !== 'all') {
       relationships = await Relationship.find({
         $and: [
           { $or: [
@@ -87,14 +90,21 @@ export const getAll = async (userID: string, status?: string) => {
  * NOTE: To get **pending** outgoing relationships, use `getPending` instead
  * and specify the relevant `direction = "outgoing"`.
  */
-export const getOutgoing = async (userID: string, status?: string) => {
+export const getOutgoing = async (userID: string, status: string) => {
   try {
     let relationships;
-    if (status) {
-      relationships = await Relationship.find({ fromUserID: userID, status });
+    if (status !== 'all') {
+      relationships = await Relationship.find({
+        $and: [
+          { fromUserID: userID },
+          { status },
+        ]
+      });
     }
     else {
-      relationships = await Relationship.find({ fromUserID: userID });
+      relationships = await Relationship.find({
+        fromUserID: userID
+      });
     }
     return relationships;
   } catch (error) {
@@ -110,14 +120,21 @@ export const getOutgoing = async (userID: string, status?: string) => {
  * NOTE: To get **pending** incoming relationships, use `getPending` instead
  * and specify the relevant `direction = incoming`.
  */
-export const getIncoming = async (userID: string, status? : string) => {
+export const getIncoming = async (userID: string, status: string) => {
   try {
     let relationships;
-    if (status) {
-      relationships = await Relationship.find({ toUserID: userID, status });
+    if (status !== 'all') {
+      relationships = await Relationship.find({
+        $and: [
+          { toUserID: userID },
+          { status },
+        ]
+      });
     }
     else {
-      relationships = await Relationship.find({ toUserID: userID });
+      relationships = await Relationship.find({
+        toUserID: userID
+      });
     }
     return relationships;
   } catch (error) {
@@ -125,83 +142,43 @@ export const getIncoming = async (userID: string, status? : string) => {
   }
 }
 
-// /**
-//  * Get pending relationships for a user.
-//  * 
-//  * Useful for getting a list of users that:
-//  * - have sent a friend request to a user
-//  * - a user has sent a friend request to
-//  * ... but the request has not been accepted yet.
-//  */
-// export const getPending = async (userID: String, direction: "outgoing" | "incoming" | "all") => {
-//   try {
-//     let relationships;
-//     switch (direction) {
-//       case "outgoing":
-//         relationships = await Relationship.find({ fromUserID: userID, status: "pending" });
-//         return relationships;
-//       case "incoming":
-//         relationships = await Relationship.find({ toUserID: userID, status: "pending" });
-//         return relationships;
-//       case "all":
-//         relationships = await Relationship.find({
-//           $or: [
-//             { fromUserID: userID, status: "pending" },
-//             { toUserID: userID, status: "pending" },
-//           ]
-//         });
-//         return relationships;
-//       default:
-//         return [];
-//     }
-//   }
-//   catch (error) {
-//     return error;
-//   }
-// }
-
-// /**
-//  * Get all *user IDs* for a user that match a given status.
-//  * 
-//  * @returns {Array} - An array of user IDs that match the given status
-//  *   in a relationship with current user ID.
-//  */
-// export const getConnections = async (userID: String, status: "pending" | "accepted" | "blocked" | "declined" | "all") => {
-//   try {
-//     let relationships;
-//     if (status == "all") {
-//       relationships = await Relationship.find({
-//         $and: [
-//           { $or: [
-//             { fromUserID: userID },
-//             { toUserID: userID },
-//           ]},
-//         ]
-//       });
-//     }
-//     else {
-//       relationships = await Relationship.find({
-//         $and: [
-//           { $or: [
-//             { fromUserID: userID },
-//             { toUserID: userID },
-//           ]},
-//           { status },
-//         ]
-//       });
-//     }
+/**
+ * Get all *user IDs* in a relationship with a given user, that match a given status.
+ * 
+ * @returns An array of user IDs that match the given status
+ *   in a relationship with current user ID.
+ */
+export const getConnections = async (userID: string, direction, status: string): Promise<Array<String>> => {
+  try {
+    let relationships;
     
-//     // parse relationships to get a list of user IDs that are not current userID
-//     const connections = relationships.map((relationship) => {
-//       if (relationship.fromUserID.toString() === userID) {
-//         return relationship.toUserID;
-//       } else {
-//         return relationship.fromUserID;
-//       }
-//     });
+    switch (direction) {
+      case 'outgoing':
+        relationships = await getOutgoing(userID, status);
+        break;
 
-//     return connections
-//   } catch (error) {
-//     return error;
-//   }
-// }
+      case 'incoming':
+        relationships = await getIncoming(userID, status);
+        break;
+
+      case 'all':
+        relationships = await getAll(userID, status);
+        break;
+
+      default:
+        throw new Error('Invalid direction');
+    }
+    // parse relationships to get a list of user IDs that are not current userID
+    const connections = new Set<string>(relationships.map((relationship) => {
+      if (relationship.fromUserID === userID) {
+        return relationship.toUserID;
+      } else {
+        return relationship.fromUserID;
+      }
+    }));
+
+    return Array.from(connections);
+  } catch (error) {
+    return error;
+  }
+}

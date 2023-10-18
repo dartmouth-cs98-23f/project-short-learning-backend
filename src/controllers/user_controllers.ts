@@ -44,18 +44,3 @@ function tokenForUser(user) {
   const timestamp = new Date().getTime();
   return jwt.encode({ sub: user.id, iat: timestamp }, process.env.AUTH_SECRET);
 }
-
-export const getUser = async (id: String) => {
-  try {
-    const user = await User.findById(id);
-
-    // return only firstName, lastName, id
-    return {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      id: user.id,
-    };
-  } catch (error) {
-    return error;
-  }
-}
