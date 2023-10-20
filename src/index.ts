@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import dotenv from 'dotenv'
 import apiRoutes from './router'
 import { videoRouter } from './routes/video_routes'
 import mongoose from 'mongoose'
@@ -7,6 +8,8 @@ import { logger, requestLogger, responseLogger } from './services/logger'
 
 const app = express()
 const port: Number = 3000
+
+dotenv.config()
 
 // enable/disable cross origin resource sharing if necessary
 app.use(cors())
