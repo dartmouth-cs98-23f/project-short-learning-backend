@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "cypress run",
-    "start": "npm run compile && node ./dist/index.js",
+    "start": "npm run compile && node ./dist/src/index.js",
     "compile": "tsc",
     "clean": "rm -rf dist && mkdir dist && mkdir dist/schema",
     "cleanFull": "rm -rf dist && rm -rf node_modules && rm -rf package-lock.json && mkdir dist && mkdir dist/schema"

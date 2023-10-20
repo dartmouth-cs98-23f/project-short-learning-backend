@@ -13,6 +13,7 @@
 import { NextFunction, Request, Response } from 'express'
 import winston from 'winston'
 
+console.log("asd")
 const levels = {
   error: 0,
   warn: 1,
