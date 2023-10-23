@@ -27,6 +27,15 @@ router.post('/auth/signin', requireSignin, async (req, res) => {
   }
 });
 
+router.get('/user', requireAuth, async (req, res) => {
+  try {
+    const user = await User.getUser(req.user);
+    res.json(user);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
 /**
  * Create a new relationship.
  * 

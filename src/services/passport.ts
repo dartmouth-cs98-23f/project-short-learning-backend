@@ -28,7 +28,7 @@ const localLogin = new LocalStrategy(localOptions, async (email, password, done)
   let isMatch;
 
   try {
-    user = await User.findOne({ email });
+    user = await User.findOne({ email }).select('+password');
     if (!user) {
       return done(null, false);
     }
