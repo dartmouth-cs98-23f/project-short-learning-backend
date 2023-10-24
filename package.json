@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "npm run build && concurrently \"npx tsc --watch\" \"nodemon -q ./dist/src/index.js\"",
+    "build": "npx tsc",
+    "start": "node ./dist/src/index.js",
     "test": "cypress run",
-    "start": "npm run compile && node ./dist/src/index.js",
-    "compile": "tsc",
     "clean": "rm -rf dist && mkdir dist && mkdir dist/schema",
     "cleanFull": "rm -rf dist && rm -rf node_modules && rm -rf package-lock.json && mkdir dist && mkdir dist/schema"
   },
@@ -24,6 +25,7 @@
     "jwt-simple": "^0.5.6",
     "mongodb": "^6.1.0",
     "mongoose": "^7.6.1",
+    "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -31,12 +33,13 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "cypress": "^13.3.1",
     "@types/cors": "^2.8.14",
     "@types/express": "^4.17.19",
     "@types/node": "^20.8.4",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.5",
+    "concurrently": "^8.2.2",
+    "cypress": "^13.3.1",
     "eslint": "^8.51.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
