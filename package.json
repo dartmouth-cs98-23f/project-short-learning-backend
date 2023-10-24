@@ -26,6 +26,7 @@
     "mongodb": "^6.1.0",
     "mongoose": "^7.6.1",
     "nodemon": "^3.0.1",
+    "npx": "^10.2.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
