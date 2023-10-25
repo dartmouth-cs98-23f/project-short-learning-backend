@@ -6,6 +6,7 @@ logs
 dist
 *.class
 *.js
+!*.cy.js
 *.js.map
 
 # Dependency directories
