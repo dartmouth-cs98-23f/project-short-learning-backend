@@ -52,3 +52,36 @@ export const getUser = async (user) => {
     throw new Error(error);
   }
 }
+
+export const updateUser = async (user, {
+  firstName, lastName, email, username, password, newPassword, birthDate, profilePicture, onBoardingStatus
+}) => {
+  try {
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (username) user.username = username;
+    if (password && newPassword) {
+      if (password === newPassword) throw new Error('New password cannot be the same as old password');
+      user.password = newPassword;
+    }
+    if (birthDate) user.birthDate = birthDate;
+    if (profilePicture) user.profilePicture = profilePicture;
+    if (onBoardingStatus) user.onBoardingStatus = onBoardingStatus;
+
+    const updatedUser = await user.save();
+    return updatedUser;
+  } 
+  catch (error) {
+    throw new Error(error);
+  }
+};
+
+export const deleteUser = async (user) => {
+  try {
+    const deletedUser = User.deleteOne({ _id: user._id });
+    return deletedUser;
+  } catch (error) {
+    throw new Error(error);
+  }
+}

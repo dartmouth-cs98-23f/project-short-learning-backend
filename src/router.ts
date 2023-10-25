@@ -36,6 +36,37 @@ router.get('/user', requireAuth, async (req, res) => {
   }
 });
 
+const checkPassword = (req, res, next) => {
+  if (req.body.password) {
+    // If the request includes a password, require sign-in
+    if (!req.body.email) {
+      return res.status(422).send({ error: 'Email is required to change password' });
+    }
+    requireSignin(req, res, next);
+  } else {
+    // If no password is included, require authentication
+    requireAuth(req, res, next);
+  }
+};
+
+router.put('/user', checkPassword, async (req, res) => {
+  try {
+    const user = await User.updateUser(req.user, req.body);
+    res.json(user);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.delete('/user', requireSignin, async (req, res) => {
+  try {
+    const user = await User.deleteUser(req.user);
+    res.json(user);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
 /**
  * Create a new relationship.
  * 
