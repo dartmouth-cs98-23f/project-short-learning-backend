@@ -1,7 +1,7 @@
 /**
  * @fileoverview logger service,
  * @description This file contains the logger service
- *
+ * 
  * @error Errors that are completely preventing a resource from working and unexpected
  * @warn Errors that are not preventing a resource from working, but are not expected
  *       (e.g. a user missing a field in a request body)
@@ -38,7 +38,7 @@ const format = winston.format.combine(
 export const logger = winston.createLogger({
   levels,
   format,
-  transports: [new winston.transports.File({ filename: 'logs/all.log' })]
+  transports: [new winston.transports.File({ filename: 'logs/all.log', level: 'debug' })]
 })
 
 winston.addColors(color)
@@ -46,7 +46,8 @@ winston.addColors(color)
 if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
-      format
+      format, 
+      level: 'debug'
     })
   )
 }
