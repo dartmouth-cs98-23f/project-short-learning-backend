@@ -1,6 +1,6 @@
 import jwt from 'jwt-simple';
-import crypto from 'crypto';
 import User from '../models/user_model';
+import { sendEmail } from '../utils/sendEmail';
 
 export const signin = (user) => {
   return tokenForUser(user);
@@ -34,8 +34,8 @@ export const signup = async ({
   user.registrationDate = new Date();
   user.lastLoginDate = new Date();
   user.onBoardingStatus = 'verifying';
-
   await user.save();
+  await sendVerificationEmail(user);
 
   return tokenForUser(user);
 };
@@ -43,6 +43,22 @@ export const signup = async ({
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
   return jwt.encode({ sub: user.id, iat: timestamp }, process.env.AUTH_SECRET);
+}
+
+export const sendVerificationEmail = async (user) => {
+  try {
+    if(!user.onBoardingStatus || user.onBoardingStatus === 'verifying') {
+      user.emailVerificationCode = Math.floor(100000 + Math.random() * 900000);
+      await user.save();
+      await sendEmail(user);
+      return true;
+    } else {
+      throw new Error('User is already verified');
+    }
+  }
+  catch (error) {
+    throw new Error(`Resend verification email error: ${error}`);
+  }
 }
 
 export const getUser = async (user) => {
@@ -81,6 +97,24 @@ export const deleteUser = async (user) => {
   try {
     const deletedUser = User.deleteOne({ _id: user._id });
     return deletedUser;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export const verifyUser = async (user, { emailVerificationCode }) => {
+  try {
+    const userWithEmailVerificationCode = await User.findById(user.id).select('+emailVerificationCode');
+    if (user.onBoardingStatus && user.onBoardingStatus !== "verifying") {
+      throw new Error('User is already verified');
+    }
+    if (userWithEmailVerificationCode.emailVerificationCode === emailVerificationCode) {
+      user.onBoardingStatus = 'tutorial';
+      await user.save();
+      return true;
+    } else {
+      throw new Error('Invalid verification token');
+    }
   } catch (error) {
     throw new Error(error);
   }

@@ -67,6 +67,24 @@ router.delete('/user', requireSignin, async (req, res) => {
   }
 });
 
+router.post('/user/verify', requireAuth, async (req, res) => {
+  try {
+    const verified = await User.verifyUser(req.user, req.body);
+    res.json(verified);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.post('/user/resend', requireAuth, async (req, res) => {
+  try {
+    const sent = await User.sendVerificationEmail(req.user);
+    res.json(sent);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
 /**
  * Create a new relationship.
  * 
