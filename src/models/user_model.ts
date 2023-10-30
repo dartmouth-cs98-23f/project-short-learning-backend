@@ -12,6 +12,7 @@ const UserSchema = new Schema({
   lastLoginDate: { type: Date, default: Date.now },
   profilePicture: String,
   onBoardingStatus: String,
+  emailVerificationCode: { type: Number, select: false },
 }, {
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
