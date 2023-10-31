@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const UserAffinitySchema = new Schema({
-  userId: { type: String, ref: 'Users', required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   topic: { type: String, required: true },
   subTopic: { type: String, required: true },
   affinityValue: { type: Number, required: true },
@@ -12,6 +12,6 @@ const UserAffinitySchema = new Schema({
   timestamps: true,
 });
 
-const UserAffinityModel = mongoose.model('UserAffinities', UserAffinitySchema);
+const UserAffinityModel = mongoose.model('UserAffinity', UserAffinitySchema);
 
 export default UserAffinityModel;
