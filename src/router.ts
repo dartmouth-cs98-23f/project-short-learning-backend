@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, requireSignin } from './services/passport';
 import * as User from './controllers/user_controllers';
 import * as Relationships from './controllers/relationship_controllers';
+import * as UserAffinity from './controllers/user_affinity_controller';
 
 const router = Router();
 
@@ -80,6 +81,53 @@ router.post('/user/resend', requireAuth, async (req, res) => {
   try {
     const sent = await User.sendVerificationEmail(req.user);
     res.json(sent);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.post('/user/affinities', requireAuth, async (req, res) => {
+  try {
+    console.log(req.body);
+    const affinity = await UserAffinity.createUserAffinity(req.user, req.body);
+    console.log(affinity);
+    res.json(affinity);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.get('/user/affinities', requireAuth, async (req, res) => {
+  try {
+    const affinities = await UserAffinity.getUserAffinities(req.user);
+    res.json(affinities);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.get('/user/affinities/:id', requireAuth, async (req, res) => {
+  try {
+    const affinity = await UserAffinity.getUserAffinity(req.user, req.params.id);
+    res.json(affinity);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.put('/user/affinities/:id', requireAuth, async (req, res) => {
+  try {
+    const affinity = await UserAffinity.updateUserAffinity(req.user, { id: req.params.id, ...req.body });
+    res.json(affinity);
+  } catch (error) {
+    res.status(422).send({ error: error.toString() });
+  }
+});
+
+router.delete('/user/affinities/:id', requireAuth, async (req, res) => {
+  try {
+    const affinity = await UserAffinity.deleteUserAffinity(req.user, req.params.id);
+    res.json(affinity);
   } catch (error) {
     res.status(422).send({ error: error.toString() });
   }

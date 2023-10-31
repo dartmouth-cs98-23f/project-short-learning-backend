@@ -1,5 +1,6 @@
 import jwt from 'jwt-simple';
 import User from '../models/user_model';
+import UserAffinity from '../models/user_affinity_model';
 import { sendEmail } from '../utils/sendEmail';
 
 export const signin = (user) => {
@@ -95,6 +96,11 @@ export const updateUser = async (user, {
 
 export const deleteUser = async (user) => {
   try {
+    const affinitiesAssociatedWithUser = await UserAffinity.find({ userId: user._id });
+    for (const affinity of affinitiesAssociatedWithUser) {
+      await UserAffinity.deleteOne({ _id: affinity._id });
+    };
+
     const deletedUser = User.deleteOne({ _id: user._id });
     return deletedUser;
   } catch (error) {
