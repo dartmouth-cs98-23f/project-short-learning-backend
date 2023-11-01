@@ -1,6 +1,8 @@
 import mongoose, { Schema, model, Document } from 'mongoose'
 import { arrayHasNoDuplicates } from './utils/validators'
-export interface VideoMetadataDocument extends Document {
+
+export interface ClipMetadataDocument extends Document {
+  videoId: mongoose.Types.ObjectId
   title: string
   description: string
   uploadDate: Date
@@ -8,26 +10,23 @@ export interface VideoMetadataDocument extends Document {
   tags: string[]
   duration: number // Seconds
   thumbnailURL: string // Link to S3
-  clips: mongoose.Types.ObjectId[]
+  clipURL: string // Link to CDN Manifest
   views: mongoose.Types.ObjectId[] // Set of unique userIDs
   likes: mongoose.Types.ObjectId[] // Set of unique userIDs
   dislikes: mongoose.Types.ObjectId[] // Set of unique userIDs
 }
 
-const videoMetadataSchema = new Schema<VideoMetadataDocument>(
+const clipMetadataSchema = new Schema<ClipMetadataDocument>(
   {
+    videoId: { type: Schema.Types.ObjectId, required: true },
     title: { type: String, required: true },
     description: { type: String, required: false },
     uploadDate: { type: Date, required: true },
-    uploader: { type: Schema.Types.ObjectId, required: false },
+    uploader: { type: Schema.Types.ObjectId, ref: 'Users', required: false },
     tags: { type: [String], required: false },
     duration: { type: Number, required: true },
     thumbnailURL: { type: String, required: false },
-    clips: {
-      type: [Schema.Types.ObjectId],
-      ref: 'ClipMetadata',
-      required: false
-    },
+    clipURL: { type: String, required: true },
     views: {
       type: [Schema.Types.ObjectId],
       required: true,
@@ -44,10 +43,10 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
       validate: [arrayHasNoDuplicates, 'Duplicate values not allowed.']
     }
   },
-  { timestamps: true, collection: 'video_metadata' }
+  { timestamps: true, collection: 'clip_metadata' }
 )
 
-export const VideoMetadata = model<VideoMetadataDocument>(
-  'VideoMetadata',
-  videoMetadataSchema
+export const ClipMetadata = model<ClipMetadataDocument>(
+  'ClipMetadata',
+  clipMetadataSchema
 )
