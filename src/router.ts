@@ -88,9 +88,7 @@ router.post('/user/resend', requireAuth, async (req, res) => {
 
 router.post('/user/affinities', requireAuth, async (req, res) => {
   try {
-    console.log(req.body);
-    const affinity = await UserAffinity.createUserAffinity(req.user, req.body);
-    console.log(affinity);
+    const affinity = await UserAffinity.createUserAffinities(req.user, req.body);
     res.json(affinity);
   } catch (error) {
     res.status(422).send({ error: error.toString() });
@@ -106,27 +104,18 @@ router.get('/user/affinities', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/user/affinities/:id', requireAuth, async (req, res) => {
+router.put('/user/affinities/', requireAuth, async (req, res) => {
   try {
-    const affinity = await UserAffinity.getUserAffinity(req.user, req.params.id);
+    const affinity = await UserAffinity.updateUserAffinities(req.user, req.body);
     res.json(affinity);
   } catch (error) {
     res.status(422).send({ error: error.toString() });
   }
 });
 
-router.put('/user/affinities/:id', requireAuth, async (req, res) => {
+router.delete('/user/affinities/', requireAuth, async (req, res) => {
   try {
-    const affinity = await UserAffinity.updateUserAffinity(req.user, { id: req.params.id, ...req.body });
-    res.json(affinity);
-  } catch (error) {
-    res.status(422).send({ error: error.toString() });
-  }
-});
-
-router.delete('/user/affinities/:id', requireAuth, async (req, res) => {
-  try {
-    const affinity = await UserAffinity.deleteUserAffinity(req.user, req.params.id);
+    const affinity = await UserAffinity.deleteUserAffinities(req.user);
     res.json(affinity);
   } catch (error) {
     res.status(422).send({ error: error.toString() });
