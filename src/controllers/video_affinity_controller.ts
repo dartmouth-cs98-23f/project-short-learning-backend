@@ -84,9 +84,11 @@ export const updateVideoAffinities = async (videoId, { affinities }) => {
 export const deleteVideoAffinities = async (videoId) => {
   try {
     const video = await VideoMetadata.findById(videoId);
+    /*
     if (!video) {
       throw new Error('Video not found');
     }
+    */
 
     const videoAffinity = await VideoAffinity.findOne({ videoId: videoId });
 
@@ -94,7 +96,7 @@ export const deleteVideoAffinities = async (videoId) => {
       throw new Error('Video affinities does not exists');
     }
 
-    await videoAffinity.deleteOne(videoId);
+    await videoAffinity.deleteOne({ _id: videoAffinity._id });
     return true;
   } catch (error) {
     throw new Error(`Delete video affinities error: ${error}`);
