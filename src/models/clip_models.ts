@@ -1,5 +1,5 @@
 import mongoose, { Schema, model, Document } from 'mongoose'
-import { arrayHasNoDuplicates } from './utils/validators'
+import { arrayHasNoDuplicates } from '../utils/validators'
 
 export interface ClipMetadataDocument extends Document {
   videoId: mongoose.Types.ObjectId
