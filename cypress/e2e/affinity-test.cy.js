@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 const URL = 'http://localhost:3000/api';
-=======
-const URL = 'http://localhost:3000';
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
 const getUniqueId = () => { return Cypress._.uniqueId(Date.now().toString()); };
 const email = `${getUniqueId()}@test.com`;
 let token = '';
@@ -11,11 +7,7 @@ describe('User Affinity Test', () => {
   it('Signing Up New User to Test Affinity', () => {
     cy.request({
       method: 'POST',
-<<<<<<< HEAD
       url: `${URL}/auth/signup`,
-=======
-      url: `${URL}/api/auth/signup`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         firstName: "Test",
         lastName: "User",
@@ -34,11 +26,7 @@ describe('User Affinity Test', () => {
   it('Creating a new affinity for user', () => {
     cy.request({
       method: 'POST',
-<<<<<<< HEAD
       url: `${URL}/user/affinities`,
-=======
-      url: `${URL}/api/user/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       },
@@ -62,11 +50,7 @@ describe('User Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'POST',
-<<<<<<< HEAD
       url: `${URL}/user/affinities`,
-=======
-      url: `${URL}/api/user/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       },
@@ -87,11 +71,7 @@ describe('User Affinity Test', () => {
   it('Gets all affinities for user', () => {
     cy.request({
       method: 'GET',
-<<<<<<< HEAD
       url: `${URL}/user/affinities`,
-=======
-      url: `${URL}/api/user/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       }
@@ -105,11 +85,7 @@ describe('User Affinity Test', () => {
   it('Updating affinities for user by updating a specific affinity', () => {
     cy.request({
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/user/affinities/`,
-=======
-      url: `${URL}/api/user/affinities/`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       },
@@ -134,11 +110,7 @@ describe('User Affinity Test', () => {
   it('Updating affinities for user by adding an additional affinity', () => {
     cy.request({
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/user/affinities`,
-=======
-      url: `${URL}/api/user/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       },
@@ -163,11 +135,7 @@ describe('User Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/user/affinities/`,
-=======
-      url: `${URL}/api/user/affinities/`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       },
@@ -188,11 +156,7 @@ describe('User Affinity Test', () => {
   it('Deleting an affinity for user', () => {
     cy.request({
       method: 'DELETE',
-<<<<<<< HEAD
       url: `${URL}/user/affinities/`,
-=======
-      url: `${URL}/api/user/affinities/`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       }
@@ -205,11 +169,7 @@ describe('User Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'DELETE',
-<<<<<<< HEAD
       url: `${URL}/user/affinities/`,
-=======
-      url: `${URL}/api/user/affinities/`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       headers: {
         'Authorization': token
       }
@@ -225,11 +185,7 @@ describe('Video Affinity Test', () => {
   it('Creating a new video', () => {
     cy.request({
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/video`,
-=======
-      url: `${URL}/videos/video`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         title: 'Sample Video',
         description: 'This is a sample video',
@@ -259,11 +215,7 @@ describe('Video Affinity Test', () => {
       videoId = createResponse.body.videoId
       cy.request({
         method: 'GET',
-<<<<<<< HEAD
         url: `${URL}/video/${videoId}`
-=======
-        url: `${URL}/videos/video/${videoId}`
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         clips = getResponse.body.metadata.clips
@@ -274,11 +226,7 @@ describe('Video Affinity Test', () => {
   it('Creating a new affinity for video', () => {
     cy.request({
       method: 'POST',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         affinities: [
           {
@@ -299,11 +247,7 @@ describe('Video Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'POST',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         affinities: [
           {
@@ -321,11 +265,7 @@ describe('Video Affinity Test', () => {
   it('Gets all affinities for video', () => {
     cy.request({
       method: 'GET',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(Object.values(response.body.affinities).length).to.eq(1)
@@ -336,11 +276,7 @@ describe('Video Affinity Test', () => {
   it('Updating affinities for video by updating a specific affinity', () => {
     cy.request({
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         affinities: [
           {
@@ -361,11 +297,7 @@ describe('Video Affinity Test', () => {
   it('Updating affinities for video by adding an additional affinity', () => {
     cy.request({
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         affinities: [
           {
@@ -387,11 +319,7 @@ describe('Video Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'PUT',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
       body: {
         affinities: [
           {
@@ -409,11 +337,7 @@ describe('Video Affinity Test', () => {
   it('Deleting an affinity for video', () => {
     cy.request({
       method: 'DELETE',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}/affinities`,
-=======
-      url: `${URL}/videos/video/${videoId}/affinities`,
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
@@ -422,11 +346,7 @@ describe('Video Affinity Test', () => {
   it('Deleting a video', () => {
     cy.request({
       method: 'DELETE',
-<<<<<<< HEAD
       url: `${URL}/video/${videoId}`
-=======
-      url: `${URL}/videos/video/${videoId}`
->>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
