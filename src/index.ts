@@ -5,6 +5,7 @@ import apiRoutes from './router'
 import { videoRouter } from './routes/video_routes'
 import mongoose from 'mongoose'
 import { logger, requestLogger, responseLogger } from './services/logger'
+import { recommendationRouter } from './routes/recommendation_routes'
 
 const app = express()
 const port: Number = 3000
@@ -34,5 +35,6 @@ async function runApp() {
 
 app.use('/api', apiRoutes)
 app.use('/videos', videoRouter)
+app.use('/recommendations', recommendationRouter)
 
 runApp()
