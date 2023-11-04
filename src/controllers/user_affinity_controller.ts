@@ -1,65 +1,76 @@
 import UserAffinity from "../models/user_affinity_model";
 
-export const createUserAffinity = async (user, { topic, subTopic, affinityValue }) => {
+// import the list of strings from src\utils\affinityTruthTable and make it a truth table for the affinity topics
+const fs = require('fs');
+
+const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8');
+const affinitiesTruthTable = fileContent.split('\r\n');
+
+export const createUserAffinities = async (user, { affinities }) => {
   try {
-    if (!topic || !subTopic ) {
-      throw new Error('Incomplete information provided');
+    const existingUserAffinity = await UserAffinity.findOne({ userId: user._id });
+    if (existingUserAffinity) {
+      throw new Error('User affinities already exists');
     }
+
     const userAffinity = new UserAffinity({
       userId: user._id,
-      topic,
-      subTopic,
-      affinityValue: affinityValue || 0.0,
+      affinities: new Map(),
     });
+
+    affinities.forEach(({ topic, subTopic, affinityValue }) => {
+      if (!affinitiesTruthTable.includes(`${topic}/${subTopic}`)) {
+        throw new Error(`Invalid topic/subtopic: ${topic}/${subTopic}`);
+      }
+      userAffinity.affinities.set(`${topic}/${subTopic}`, affinityValue);
+    });
+
     const savedUserAffinity = await userAffinity.save();
     return savedUserAffinity;
   } catch (error) {
-    throw new Error(`Create user affinity error: ${error}`);
+    throw new Error(`Create user affinities error: ${error}`);
   }
 }
 
 export const getUserAffinities = async (user) => {
   try {
-    const userAffinities = await UserAffinity.find({ userId: user._id });
+    const userAffinities = await UserAffinity.findOne({ userId: user._id });
     return userAffinities;
   } catch (error) {
     throw new Error(`Get user affinities error: ${error}`);
   }
 }
 
-export const getUserAffinity = async (user, id) => {
+export const updateUserAffinities = async (user, { affinities }) => {
   try {
-    const userAffinity = await UserAffinity.findOne({ userId: user._id, _id: id });
-    return userAffinity;
-  } catch (error) {
-    throw new Error(`Get user affinity error: ${error}`);
-  }
-}
-
-export const updateUserAffinity = async (user, { id, topic, subTopic, affinityValue }) => {
-  try {
-    const userAffinity = await UserAffinity.findOne({ userId: user._id, _id: id });
+    const userAffinity = await UserAffinity.findOne({ userId: user._id });
     if (!userAffinity) {
-      throw new Error('User affinity not found');
+      throw new Error('User affinities not found');
     }
     // Can only edit affinity value after creation
-    userAffinity.affinityValue = affinityValue || userAffinity.affinityValue;
+    affinities.forEach(({ topic, subTopic, affinityValue }) => {
+      if (!affinitiesTruthTable.includes(`${topic}/${subTopic}`)) {
+        throw new Error(`Invalid topic/subtopic: ${topic}/${subTopic}`);
+      }
+      userAffinity.affinities.set(`${topic}/${subTopic}`, affinityValue);
+    });
+
     const savedUserAffinity = await userAffinity.save();
     return savedUserAffinity;
   } catch (error) {
-    throw new Error(`Update user affinity error: ${error}`);
+    throw new Error(`Update user affinities error: ${error}`);
   }
 }
 
-export const deleteUserAffinity = async (user, id) => {
+export const deleteUserAffinities = async (user) => {
   try {
-    const userAffinity = await UserAffinity.findOne({ userId: user._id, _id: id });
+    const userAffinity = await UserAffinity.findOne({ userId: user._id });
     if (!userAffinity) {
-      throw new Error('User affinity not found');
+      throw new Error('User affinities not found');
     }
-    await UserAffinity.deleteOne({ userId: user._id, _id: id });
+    await UserAffinity.deleteOne(userAffinity._id);
     return true;
   } catch (error) {
-    throw new Error(`Delete user affinity error: ${error}`);
+    throw new Error(`Delete user affinities error: ${error}`);
   }
 }
