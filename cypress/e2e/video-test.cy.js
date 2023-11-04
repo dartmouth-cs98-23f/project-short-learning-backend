@@ -12,7 +12,7 @@ describe('Video Metadata', () => {
   it('Creating a new video', () => {
     cy.request({
       method: 'PUT',
-      url: `${URL}/video`,
+      url: `${URL}/videos`,
       body: {
         title: 'Sample Video',
         description: 'This is a sample video',
@@ -42,7 +42,7 @@ describe('Video Metadata', () => {
       videoId = createResponse.body.videoId
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}`
+        url: `${URL}/videos/${videoId}`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         clips = getResponse.body.metadata.clips
@@ -53,7 +53,7 @@ describe('Video Metadata', () => {
   it('Liking a video', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/video/${videoId}/like`,
+      url: `${URL}/videos/${videoId}/like`,
       body: {
         userId: userId
       }
@@ -62,7 +62,7 @@ describe('Video Metadata', () => {
       expect(likeResponse.body.likes).to.eq(1)
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}`
+        url: `${URL}/videos/${videoId}`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         expect(getResponse.body.metadata.likes.length).to.eq(1)
@@ -74,7 +74,7 @@ describe('Video Metadata', () => {
   it('Disliking a video', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/video/${videoId}/dislike`,
+      url: `${URL}/videos/${videoId}/dislike`,
       body: {
         userId: userId
       }
@@ -83,7 +83,7 @@ describe('Video Metadata', () => {
       expect(dislikeResponse.body.dislikes).to.eq(1)
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}`
+        url: `${URL}/videos/${videoId}`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         expect(getResponse.body.metadata.dislikes.length).to.eq(1)
@@ -95,7 +95,7 @@ describe('Video Metadata', () => {
   it('Commenting on a video', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/video/${videoId}/comment`,
+      url: `${URL}/videos/${videoId}/comment`,
       body: {
         userId: userId,
         text: 'This is a comment'
@@ -105,7 +105,7 @@ describe('Video Metadata', () => {
       expect(commentResponse.body.totalComments).to.eq(1)
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}/comments`
+        url: `${URL}/videos/${videoId}/comments`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         expect(getResponse.body.totalComments).to.eq(1)
@@ -119,7 +119,7 @@ describe('Video Metadata', () => {
   it('Adding a like to a comment', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/video/${videoId}/comment/${commentId}/like`,
+      url: `${URL}/videos/${videoId}/comment/${commentId}/like`,
       body: {
         userId: userId
       }
@@ -128,7 +128,7 @@ describe('Video Metadata', () => {
       expect(likeResponse.body.likes).to.eq(1)
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}/comments`
+        url: `${URL}/videos/${videoId}/comments`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         expect(getResponse.body.comments[0].likes.length).to.eq(1)
@@ -140,7 +140,7 @@ describe('Video Metadata', () => {
   it('Commenting on a comment', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/video/${videoId}/comment`,
+      url: `${URL}/videos/${videoId}/comment`,
       body: {
         userId: userId,
         text: 'This is a comment on a comment',
@@ -151,7 +151,7 @@ describe('Video Metadata', () => {
       expect(commentResponse.body.totalComments).to.eq(2)
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}/comments`
+        url: `${URL}/videos/${videoId}/comments`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         expect(getResponse.body.totalComments).to.eq(2)
@@ -168,12 +168,12 @@ describe('Video Metadata', () => {
   it('Deleting a comment, with the nested one as well', () => {
     cy.request({
       method: 'DELETE',
-      url: `${URL}/video/${videoId}/comment/${commentId}`
+      url: `${URL}/videos/${videoId}/comment/${commentId}`
     }).then((deleteResponse) => {
       expect(deleteResponse.status).to.eq(200)
       cy.request({
         method: 'GET',
-        url: `${URL}/video/${videoId}/comments`
+        url: `${URL}/videos/${videoId}/comments`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         expect(getResponse.body.totalComments).to.eq(0)
@@ -185,7 +185,7 @@ describe('Video Metadata', () => {
   it('Deleting a video', () => {
     cy.request({
       method: 'DELETE',
-      url: `${URL}/video/${videoId}`
+      url: `${URL}/videos/${videoId}`
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
