@@ -13,6 +13,7 @@ const UserSchema = new Schema({
   profilePicture: String,
   onBoardingStatus: String,
   emailVerificationCode: { type: Number, select: false },
+  isAdmin: { type: Boolean, default: false },
 }, {
   toObject: { virtuals: true },
   toJSON: { virtuals: true },

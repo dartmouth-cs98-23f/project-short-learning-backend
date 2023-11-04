@@ -315,6 +315,10 @@ videoRouter.delete('/video/:videoId/affinities', async (req, res) => {
   } catch (error) {
     return res.status(422).json({ message: error.toString() })
   }
+<<<<<<< HEAD
 });
 
 export default videoRouter;
+=======
+});
+>>>>>>> ac4af46e7aed70657418d9f710100cb30b113727
