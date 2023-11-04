@@ -1,4 +1,4 @@
-const URL = 'http://localhost:3000';
+const URL = 'http://localhost:3000/api';
 const getUniqueId = () => { return Cypress._.uniqueId(Date.now().toString()); };
 const email = `${getUniqueId()}@test.com`;
 let token = '';
@@ -7,7 +7,7 @@ describe('User Affinity Test', () => {
   it('Signing Up New User to Test Affinity', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/api/auth/signup`,
+      url: `${URL}/auth/signup`,
       body: {
         firstName: "Test",
         lastName: "User",
@@ -26,7 +26,7 @@ describe('User Affinity Test', () => {
   it('Creating a new affinity for user', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/api/user/affinities`,
+      url: `${URL}/user/affinities`,
       headers: {
         'Authorization': token
       },
@@ -50,7 +50,7 @@ describe('User Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'POST',
-      url: `${URL}/api/user/affinities`,
+      url: `${URL}/user/affinities`,
       headers: {
         'Authorization': token
       },
@@ -71,7 +71,7 @@ describe('User Affinity Test', () => {
   it('Gets all affinities for user', () => {
     cy.request({
       method: 'GET',
-      url: `${URL}/api/user/affinities`,
+      url: `${URL}/user/affinities`,
       headers: {
         'Authorization': token
       }
@@ -85,7 +85,7 @@ describe('User Affinity Test', () => {
   it('Updating affinities for user by updating a specific affinity', () => {
     cy.request({
       method: 'PUT',
-      url: `${URL}/api/user/affinities/`,
+      url: `${URL}/user/affinities/`,
       headers: {
         'Authorization': token
       },
@@ -110,7 +110,7 @@ describe('User Affinity Test', () => {
   it('Updating affinities for user by adding an additional affinity', () => {
     cy.request({
       method: 'PUT',
-      url: `${URL}/api/user/affinities`,
+      url: `${URL}/user/affinities`,
       headers: {
         'Authorization': token
       },
@@ -135,7 +135,7 @@ describe('User Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'PUT',
-      url: `${URL}/api/user/affinities/`,
+      url: `${URL}/user/affinities/`,
       headers: {
         'Authorization': token
       },
@@ -156,7 +156,7 @@ describe('User Affinity Test', () => {
   it('Deleting an affinity for user', () => {
     cy.request({
       method: 'DELETE',
-      url: `${URL}/api/user/affinities/`,
+      url: `${URL}/user/affinities/`,
       headers: {
         'Authorization': token
       }
@@ -169,7 +169,7 @@ describe('User Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'DELETE',
-      url: `${URL}/api/user/affinities/`,
+      url: `${URL}/user/affinities/`,
       headers: {
         'Authorization': token
       }
@@ -185,7 +185,7 @@ describe('Video Affinity Test', () => {
   it('Creating a new video', () => {
     cy.request({
       method: 'PUT',
-      url: `${URL}/videos/video`,
+      url: `${URL}/video`,
       body: {
         title: 'Sample Video',
         description: 'This is a sample video',
@@ -215,7 +215,7 @@ describe('Video Affinity Test', () => {
       videoId = createResponse.body.videoId
       cy.request({
         method: 'GET',
-        url: `${URL}/videos/video/${videoId}`
+        url: `${URL}/video/${videoId}`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
         clips = getResponse.body.metadata.clips
@@ -226,7 +226,7 @@ describe('Video Affinity Test', () => {
   it('Creating a new affinity for video', () => {
     cy.request({
       method: 'POST',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
       body: {
         affinities: [
           {
@@ -247,7 +247,7 @@ describe('Video Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'POST',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
       body: {
         affinities: [
           {
@@ -265,7 +265,7 @@ describe('Video Affinity Test', () => {
   it('Gets all affinities for video', () => {
     cy.request({
       method: 'GET',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(Object.values(response.body.affinities).length).to.eq(1)
@@ -276,7 +276,7 @@ describe('Video Affinity Test', () => {
   it('Updating affinities for video by updating a specific affinity', () => {
     cy.request({
       method: 'PUT',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
       body: {
         affinities: [
           {
@@ -297,7 +297,7 @@ describe('Video Affinity Test', () => {
   it('Updating affinities for video by adding an additional affinity', () => {
     cy.request({
       method: 'PUT',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
       body: {
         affinities: [
           {
@@ -319,7 +319,7 @@ describe('Video Affinity Test', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'PUT',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
       body: {
         affinities: [
           {
@@ -337,7 +337,7 @@ describe('Video Affinity Test', () => {
   it('Deleting an affinity for video', () => {
     cy.request({
       method: 'DELETE',
-      url: `${URL}/videos/video/${videoId}/affinities`,
+      url: `${URL}/video/${videoId}/affinities`,
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
@@ -346,7 +346,7 @@ describe('Video Affinity Test', () => {
   it('Deleting a video', () => {
     cy.request({
       method: 'DELETE',
-      url: `${URL}/videos/video/${videoId}`
+      url: `${URL}/video/${videoId}`
     }).then((response) => {
       expect(response.status).to.eq(200)
     })

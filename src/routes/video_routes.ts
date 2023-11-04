@@ -2,7 +2,7 @@ import { Router } from 'express'
 import * as Video from '../controllers/video_controllers'
 import * as VideoAffinity from '../controllers/video_affinity_controller'
 import { logger } from '../services/logger'
-export const videoRouter = Router()
+const videoRouter = Router()
 
 /**
  *
@@ -316,3 +316,5 @@ videoRouter.delete('/video/:videoId/affinities', async (req, res) => {
     return res.status(422).json({ message: error.toString() })
   }
 });
+
+export default videoRouter;

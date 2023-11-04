@@ -1,6 +1,6 @@
 const { get } = require('http')
 
-const URL = 'localhost:3000/videos'
+const URL = 'localhost:3000/api'
 
 describe('Video Metadata', () => {
   var videoId = ''
