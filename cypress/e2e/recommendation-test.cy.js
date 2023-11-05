@@ -1,9 +1,45 @@
 const URL = 'localhost:3000/api'
+const username = Cypress._.uniqueId(Date.now().toString())
+const email = `${username}@test.com`
 
 describe('Precomputed Recommendations', () => {
   var videoIds = []
   var clips = []
-  var userId = '123456789101112131415160'
+  var userId = ''
+  var token = ''
+
+  it('Creating a new test user', () => {
+    cy.request({
+      method: 'POST',
+      url: `${URL}/auth/signup`,
+      body: {
+        firstName: 'Test',
+        lastName: 'User',
+        email,
+        username,
+        password: '123!!!',
+        birthDate: '2000-10-10'
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('token')
+      token = response.body.token
+      cy.request({
+        method: 'GET',
+        url: `${URL}/user`,
+        headers: {
+          Authorization: token
+        }
+      }).then((response) => {
+        expect(response.status).to.eq(200)
+        expect(response.body.email).to.eq(email)
+        expect(response.body.username).to.eq(username)
+        expect(response.body.firstName).to.eq('Test')
+        expect(response.body.lastName).to.eq('User')
+        userId = response.body._id
+      })
+    })
+  })
 
   it('Deleting recommendations if they exist', () => {
     cy.request({
@@ -53,6 +89,9 @@ describe('Precomputed Recommendations', () => {
         var videoId = createResponse.body.videoId
         cy.request({
           method: 'GET',
+          headers: {
+            Authorization: token
+          },
           url: `${URL}/videos/${videoId}`
         }).then((getResponse) => {
           expect(getResponse.status).to.eq(200)
@@ -87,6 +126,9 @@ describe('Precomputed Recommendations', () => {
     cy.request({
       method: 'GET',
       url: `${URL}/recommendations/precomputed`,
+      headers: {
+        Authorization: token
+      },
       body: {
         userId
       }
@@ -130,6 +172,9 @@ describe('Precomputed Recommendations', () => {
   it("Checking if the recommendation's topVideoRecommendations were updated", () => {
     cy.request({
       method: 'GET',
+      headers: {
+        Authorization: token
+      },
       url: `${URL}/recommendations/precomputed`,
       body: {
         userId
