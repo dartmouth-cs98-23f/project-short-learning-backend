@@ -1,5 +1,8 @@
 import { Request, Router } from 'express'
-import { GetNewRecommendationBodyParams, PrecomputedRecommendationsDocument } from '../models/recommendation_models'
+import {
+  GetNewRecommendationBodyParams,
+  PrecomputedRecommendationsDocument
+} from '../models/recommendation_models'
 import { requireAdmin, requireAuth } from '../services/passport'
 import {
   deletePrecomputedRecommendations,
@@ -23,7 +26,7 @@ export const recommendationRouter = Router()
  *         500 if server error
  */
 recommendationRouter.get(
-  '/precomputed',
+  '/recommendations/precomputed',
   requireAuth,
   async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
     try {
@@ -50,7 +53,7 @@ recommendationRouter.get(
  *         500 if server error
  */
 recommendationRouter.put(
-  '/precomputed',
+  '/recommendations/precomputed',
   requireAdmin,
   async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
     try {
@@ -73,7 +76,7 @@ recommendationRouter.put(
  *         500 if server error
  */
 recommendationRouter.delete(
-  '/precomputed',
+  '/recommendations/precomputed',
   requireAdmin,
   async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
     try {
@@ -84,10 +87,14 @@ recommendationRouter.delete(
   }
 )
 
-recommendationRouter.post('/newVideo', requireAuth, async (req: Request<{}, {}, GetNewRecommendationBodyParams> , res) => {
-  try {
-    getNewPrecomputedVideoRecommendation(req, res)
-  } catch (error) {
-    return res.status(500).json({ message: 'Server Error' })
+recommendationRouter.post(
+  '/newVideo',
+  requireAuth,
+  async (req: Request<{}, {}, GetNewRecommendationBodyParams>, res) => {
+    try {
+      getNewPrecomputedVideoRecommendation(req, res)
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error' })
+    }
   }
-})
+)

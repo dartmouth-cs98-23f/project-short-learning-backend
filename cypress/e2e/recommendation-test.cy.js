@@ -1,4 +1,4 @@
-const URL = 'localhost:3000'
+const URL = 'localhost:3000/api'
 
 describe('Precomputed Recommendations', () => {
   var videoIds = []
@@ -20,7 +20,7 @@ describe('Precomputed Recommendations', () => {
     function createVideo() {
       cy.request({
         method: 'PUT',
-        url: `${URL}/videos/video`,
+        url: `${URL}/videos`,
         body: {
           title: 'Sample Video',
           description: 'This is a sample video',
@@ -53,7 +53,7 @@ describe('Precomputed Recommendations', () => {
         var videoId = createResponse.body.videoId
         cy.request({
           method: 'GET',
-          url: `${URL}/videos/video/${videoId}`
+          url: `${URL}/videos/${videoId}`
         }).then((getResponse) => {
           expect(getResponse.status).to.eq(200)
           clips.push([
@@ -143,56 +143,56 @@ describe('Precomputed Recommendations', () => {
         getResponse.body.recommendations.topTopicVideoRecommendations.length
       ).to.eq(0)
 
-      expect(getResponse.body.recommendations.topVideoRecommendations[0].videoId).to.eq(
-        videoIds[0]
-      )
-      expect(getResponse.body.recommendations.topVideoRecommendations[1].videoId).to.eq(
-        videoIds[1]
-      )
+      expect(
+        getResponse.body.recommendations.topVideoRecommendations[0].videoId
+      ).to.eq(videoIds[0])
+      expect(
+        getResponse.body.recommendations.topVideoRecommendations[1].videoId
+      ).to.eq(videoIds[1])
     })
   })
 
   it("Updating the recommendation's topTopicVideoRecommendations should fail when the clipsIndex is out of range", () => {
     cy.request({
-        method: 'PUT',
-        failOnStatusCode: false,
-        url: `${URL}/recommendations/precomputed`,
-        body: {
-          userId,
-          topTopicVideoRecommendations: [
-            {
-              videoId: videoIds[0],
-              clipIndex: 2
-            }
-          ]
-        }
+      method: 'PUT',
+      failOnStatusCode: false,
+      url: `${URL}/recommendations/precomputed`,
+      body: {
+        userId,
+        topTopicVideoRecommendations: [
+          {
+            videoId: videoIds[0],
+            clipIndex: 2
+          }
+        ]
+      }
     }).then((updateResponse) => {
-        expect(updateResponse.status).to.eq(422)
-        expect(updateResponse.body.message).to.eq(
-            'Invalid recommendations, check the { recommendation_models.ts }'
-        )
+      expect(updateResponse.status).to.eq(422)
+      expect(updateResponse.body.message).to.eq(
+        'Invalid recommendations, check the { recommendation_models.ts }'
+      )
     })
   })
 
-  it("Updating the recommendation with a bad videoId should fail", () => {
+  it('Updating the recommendation with a bad videoId should fail', () => {
     cy.request({
-        method: 'PUT',
-        failOnStatusCode: false,
-        url: `${URL}/recommendations/precomputed`,
-        body: {
-          userId,
-          topTopicVideoRecommendations: [
-            {
-              videoId: 'badid',
-              clipIndex: 0
-            }
-          ]
-        }
+      method: 'PUT',
+      failOnStatusCode: false,
+      url: `${URL}/recommendations/precomputed`,
+      body: {
+        userId,
+        topTopicVideoRecommendations: [
+          {
+            videoId: 'badid',
+            clipIndex: 0
+          }
+        ]
+      }
     }).then((updateResponse) => {
-        expect(updateResponse.status).to.eq(422)
-        expect(updateResponse.body.message).to.eq(
-            'Invalid recommendations, check the { recommendation_models.ts }'
-        )
+      expect(updateResponse.status).to.eq(422)
+      expect(updateResponse.body.message).to.eq(
+        'Invalid recommendations, check the { recommendation_models.ts }'
+      )
     })
   })
 })

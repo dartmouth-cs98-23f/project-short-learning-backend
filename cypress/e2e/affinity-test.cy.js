@@ -1,7 +1,9 @@
-const URL = 'http://localhost:3000/api';
-const getUniqueId = () => { return Cypress._.uniqueId(Date.now().toString()); };
-const email = `${getUniqueId()}@test.com`;
-let token = '';
+const URL = 'http://localhost:3000/api'
+const getUniqueId = () => {
+  return Cypress._.uniqueId(Date.now().toString())
+}
+const email = `${getUniqueId()}@test.com`
+let token = ''
 
 describe('User Affinity Test', () => {
   it('Signing Up New User to Test Affinity', () => {
@@ -9,12 +11,12 @@ describe('User Affinity Test', () => {
       method: 'POST',
       url: `${URL}/auth/signup`,
       body: {
-        firstName: "Test",
-        lastName: "User",
+        firstName: 'Test',
+        lastName: 'User',
         email,
-        username: `${getUniqueId()}`, 
-        password: "123!!!", 
-        birthDate: "2000-10-10"
+        username: `${getUniqueId()}`,
+        password: '123!!!',
+        birthDate: '2000-10-10'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -28,23 +30,23 @@ describe('User Affinity Test', () => {
       method: 'POST',
       url: `${URL}/user/affinities`,
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Artificial Intelligence",
-            affinityValue: 0.1,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Artificial Intelligence',
+            affinityValue: 0.1
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
       expect(response.body).to.have.property('userId')
     })
-  });
+  })
 
   it('Posting bad affinity for user with bad topic/subtopic combo, expected to fail', () => {
     cy.request({
@@ -52,76 +54,80 @@ describe('User Affinity Test', () => {
       method: 'POST',
       url: `${URL}/user/affinities`,
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Machine Learning",
-            affinityValue: 0.1,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Machine Learning',
+            affinityValue: 0.1
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
-  });
+  })
 
   it('Gets all affinities for user', () => {
     cy.request({
       method: 'GET',
       url: `${URL}/user/affinities`,
       headers: {
-        'Authorization': token
+        Authorization: token
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(response.body.affinities['Technology/Artificial Intelligence']).to.have.equal(0.1);
+      expect(
+        response.body.affinities['Technology/Artificial Intelligence']
+      ).to.have.equal(0.1)
     })
-  });
+  })
 
   it('Updating affinities for user by updating a specific affinity', () => {
     cy.request({
       method: 'PUT',
       url: `${URL}/user/affinities/`,
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Artificial Intelligence",
-            affinityValue: 0.2,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Artificial Intelligence',
+            affinityValue: 0.2
+          }
+        ]
       }
     }).then((response) => {
       console.log(response.body)
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
       expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(response.body.affinities['Technology/Artificial Intelligence']).to.eq(0.2)
+      expect(
+        response.body.affinities['Technology/Artificial Intelligence']
+      ).to.eq(0.2)
     })
-  });
+  })
 
   it('Updating affinities for user by adding an additional affinity', () => {
     cy.request({
       method: 'PUT',
       url: `${URL}/user/affinities`,
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Hardware",
-            affinityValue: 0.95,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Hardware',
+            affinityValue: 0.95
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -129,7 +135,7 @@ describe('User Affinity Test', () => {
       expect(Object.values(response.body.affinities).length).to.eq(2)
       expect(response.body.affinities['Technology/Hardware']).to.eq(0.95)
     })
-  });
+  })
 
   it('Updating an affinity for user, expected to fail because affinity does not exist in truth table', () => {
     cy.request({
@@ -137,33 +143,33 @@ describe('User Affinity Test', () => {
       method: 'PUT',
       url: `${URL}/user/affinities/`,
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Banana",
-            affinityValue: 0.95,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Banana',
+            affinityValue: 0.95
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
-  });
+  })
 
   it('Deleting an affinity for user', () => {
     cy.request({
       method: 'DELETE',
       url: `${URL}/user/affinities/`,
       headers: {
-        'Authorization': token
+        Authorization: token
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
-  });
+  })
 
   it('Deleting an affinity for user, expected to fail because affinity does not exist', () => {
     cy.request({
@@ -171,32 +177,32 @@ describe('User Affinity Test', () => {
       method: 'DELETE',
       url: `${URL}/user/affinities/`,
       headers: {
-        'Authorization': token
+        Authorization: token
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
-  });
+  })
 
   it('Deleting user', () => {
     cy.request({
       method: 'DELETE',
       url: `${URL}/user/`,
       headers: {
-        'Authorization': token
+        Authorization: token
       },
-      body : {
+      body: {
         email,
-        password: "123!!!"
+        password: '123!!!'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
-  });
-});
+  })
+})
 
-let videoId = '';
-let clips = [];
+let videoId = ''
+let clips = []
 describe('Video Affinity Test', () => {
   it('Creating a new video', () => {
     cy.request({
@@ -237,7 +243,7 @@ describe('Video Affinity Test', () => {
         clips = getResponse.body.metadata.clips
       })
     })
-  });
+  })
 
   it('Creating a new affinity for video', () => {
     cy.request({
@@ -246,18 +252,18 @@ describe('Video Affinity Test', () => {
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Artificial Intelligence",
-            affinityValue: 0.1,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Artificial Intelligence',
+            affinityValue: 0.1
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
       expect(response.body).to.have.property('videoId')
     })
-  });
+  })
 
   it('Posting bad affinity for video with bad topic/subtopic combo, expected to fail', () => {
     cy.request({
@@ -267,27 +273,29 @@ describe('Video Affinity Test', () => {
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Machine Learning",
-            affinityValue: 0.1,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Machine Learning',
+            affinityValue: 0.1
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
-  });
+  })
 
   it('Gets all affinities for video', () => {
     cy.request({
       method: 'GET',
-      url: `${URL}/videos/${videoId}/affinities`,
+      url: `${URL}/videos/${videoId}/affinities`
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(response.body.affinities['Technology/Artificial Intelligence']).to.have.equal(0.1);
+      expect(
+        response.body.affinities['Technology/Artificial Intelligence']
+      ).to.have.equal(0.1)
     })
-  });
+  })
 
   it('Updating affinities for video by updating a specific affinity', () => {
     cy.request({
@@ -296,19 +304,21 @@ describe('Video Affinity Test', () => {
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Artificial Intelligence",
-            affinityValue: 0.2,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Artificial Intelligence',
+            affinityValue: 0.2
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
       expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(response.body.affinities['Technology/Artificial Intelligence']).to.eq(0.2)
+      expect(
+        response.body.affinities['Technology/Artificial Intelligence']
+      ).to.eq(0.2)
     })
-  });
+  })
 
   it('Updating affinities for video by adding an additional affinity', () => {
     cy.request({
@@ -317,11 +327,11 @@ describe('Video Affinity Test', () => {
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Hardware",
-            affinityValue: 0.95,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Hardware',
+            affinityValue: 0.95
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -329,7 +339,7 @@ describe('Video Affinity Test', () => {
       expect(Object.values(response.body.affinities).length).to.eq(2)
       expect(response.body.affinities['Technology/Hardware']).to.eq(0.95)
     })
-  });
+  })
 
   it('Updating an affinity for video, expected to fail because affinity does not exist in truth table', () => {
     cy.request({
@@ -339,25 +349,25 @@ describe('Video Affinity Test', () => {
       body: {
         affinities: [
           {
-            topic: "Technology",
-            subTopic: "Banana",
-            affinityValue: 0.95,
-          },
-        ],
+            topic: 'Technology',
+            subTopic: 'Banana',
+            affinityValue: 0.95
+          }
+        ]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
-  });
+  })
 
   it('Deleting an affinity for video', () => {
     cy.request({
       method: 'DELETE',
-      url: `${URL}/videos/${videoId}/affinities`,
+      url: `${URL}/videos/${videoId}/affinities`
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
-  });
+  })
 
   it('Deleting a video', () => {
     cy.request({
@@ -367,4 +377,4 @@ describe('Video Affinity Test', () => {
       expect(response.status).to.eq(200)
     })
   })
-});
+})

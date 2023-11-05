@@ -181,7 +181,7 @@ describe('Video Metadata', () => {
       })
     })
   })
-  
+
   it('Deleting a video', () => {
     cy.request({
       method: 'DELETE',

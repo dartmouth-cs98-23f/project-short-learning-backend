@@ -10,7 +10,8 @@
     "test": "cypress run",
     "clean": "rm -rf dist && mkdir dist && mkdir dist/schema",
     "cleanFull": "rm -rf dist && rm -rf node_modules && rm -rf package-lock.json && mkdir dist && mkdir dist/schema",
-    "cypress": "cypress run --spec cypress/e2e/user-test.cy.js"
+    "cypress": "cypress run --spec cypress/e2e/user-test.cy.js",
+    "lint": "npx prettier . --write"
   },
   "compilerOptions": {
     "typeRoots": [
