@@ -65,6 +65,5 @@ export const PrecomputedRecommendations =
   )
 
 export interface GetNewRecommendationBodyParams {
-  userId: mongoose.Types.ObjectId
   isSkip: boolean
 }

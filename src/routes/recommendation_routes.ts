@@ -6,7 +6,7 @@ import {
 import { requireAdmin, requireAuth } from '../services/passport'
 import {
   deletePrecomputedRecommendations,
-  getNewPrecomputedVideoRecommendation,
+  getNewPrecomputedPlaylistRecommendation,
   getPrecomputedRecommendations,
   updatePrecomputedRecommendations
 } from '../controllers/recommendation_controllers'
@@ -88,11 +88,11 @@ recommendationRouter.delete(
 )
 
 recommendationRouter.post(
-  '/newVideo',
+  '/recommendations/newplaylist',
   requireAuth,
   async (req: Request<{}, {}, GetNewRecommendationBodyParams>, res) => {
     try {
-      getNewPrecomputedVideoRecommendation(req, res)
+      getNewPrecomputedPlaylistRecommendation(req, res)
     } catch (error) {
       return res.status(500).json({ message: 'Server Error' })
     }

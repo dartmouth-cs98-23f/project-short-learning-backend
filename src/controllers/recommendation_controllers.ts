@@ -2,16 +2,18 @@ import { Request, Response } from 'express'
 import {
   GetNewRecommendationBodyParams,
   PrecomputedRecommendations,
-  PrecomputedRecommendationsDocument
+  PrecomputedRecommendationsDocument,
+  Recommendation
 } from '../models/recommendation_models'
 import { logger } from '../services/logger'
 import { validatePrecomputedRecommendations } from '../utils/endpoints/param_validator'
+import { VideoMetadata, VideoMetadataDocument } from '../models/video_models'
 
 export const getPrecomputedRecommendations = async (
   req: Request<{}, {}, PrecomputedRecommendationsDocument>,
   res: Response
 ) => {
-  const userId = req.body.userId
+  const userId = req.user
   if (!userId) {
     return res.status(422).json({ message: 'Missing userId' })
   }
@@ -98,8 +100,9 @@ export const deletePrecomputedRecommendations = async (
   res: Response
 ) => {
   const userId = req.body.userId
+
   if (!userId) {
-    return res.status(422).json({ message: 'Missing userId' })
+    return res.status(422).json({ message: 'Missing { userId }' })
   }
 
   const recommendations = await PrecomputedRecommendations.findOneAndDelete({
@@ -119,10 +122,49 @@ export const deletePrecomputedRecommendations = async (
     .json({ message: 'Success, precomputed recommendations deleted' })
 }
 
-export const getNewPrecomputedVideoRecommendation = async (
+export const getNewPrecomputedPlaylistRecommendation = async (
   req: Request<{}, {}, GetNewRecommendationBodyParams>,
   res: Response
 ) => {
-  // todo
-  return res.status(200).json({ message: 'Success' })
+  const userId = req.user._id
+
+  logger.debug(`Getting new playlist for user: ' + ${userId}`)
+
+  const recommendations = await PrecomputedRecommendations.findOne({
+    userId: userId
+  })
+
+  if (!recommendations) {
+    return res.status(404).json({ message: 'Recommendations not found' })
+  }
+
+  logger.debug(`Found recommendations for user: ' + ${userId}`)
+
+  const newPlaylistRecommendation: Recommendation =
+    recommendations.topVideoRecommendations.pop()
+
+  if (!newPlaylistRecommendation) {
+    return res.status(404).json({ message: 'No more recommendations' })
+  }
+
+  logger.debug(`Found new playlist for user: ' + ${userId}`)
+
+  await recommendations.save()
+
+  const newPlaylist: VideoMetadataDocument = await VideoMetadata.findById(
+    newPlaylistRecommendation.videoId
+  )
+    .populate('clips')
+    .exec()
+
+  if (!newPlaylist) {
+    return res.status(404).json({ message: 'New playlist not found' })
+  }
+
+  logger.debug(`Found new playlist for user: ' + ${userId}`)
+
+  return res.status(200).json({
+    message: 'Success',
+    newPlaylist: newPlaylist
+  })
 }
