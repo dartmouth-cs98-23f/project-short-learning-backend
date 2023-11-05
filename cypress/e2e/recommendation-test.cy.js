@@ -7,6 +7,7 @@ describe('Precomputed Recommendations', () => {
 
   it('Deleting recommendations if they exist', () => {
     cy.request({
+      failOnStatusCode: false,
       method: 'DELETE',
       url: `${URL}/recommendations/precomputed`,
       body: {
