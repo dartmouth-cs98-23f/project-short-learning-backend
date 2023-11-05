@@ -157,11 +157,9 @@ export const deleteVideo = async (req: Request, res: Response) => {
 
 export const addLike = async (req: Request, res: Response) => {
   const videoId = req.params.videoId
-  const userId = req.body.userId
+  const userId = req.user
   if (!videoId) {
     return res.status(422).json({ message: 'Missing videoId parameter' })
-  } else if (!userId) {
-    return res.status(422).json({ message: 'Missing userId parameter' })
   }
 
   // update "likes" field and push userId to the array if it doesn't exist
@@ -185,11 +183,9 @@ export const addLike = async (req: Request, res: Response) => {
 
 export const addDislike = async (req: Request, res: Response) => {
   const videoId = req.params.videoId
-  const userId = req.body.userId
+  const userId = req.user
   if (!videoId) {
     return res.status(422).json({ message: 'Missing videoId parameter' })
-  } else if (!userId) {
-    return res.status(422).json({ message: 'Missing userId parameter' })
   }
 
   // update "dislikes" field and push userId to the array if it doesn't exist
@@ -245,14 +241,12 @@ export const getComments = async (req: Request, res: Response) => {
 
 export const addComment = async (req: Request, res: Response) => {
   const videoId = req.params.videoId
-  const userId = req.body.userId
+  const userId = req.user
   const text = req.body.text
   const parentCommentId = req.body.parentCommentId
 
   if (!videoId) {
     return res.status(422).json({ message: 'Missing videoId parameter' })
-  } else if (!userId) {
-    return res.status(422).json({ message: 'Missing userId parameter' })
   } else if (!text) {
     return res.status(422).json({ message: 'Missing text parameter' })
   } else if (text.length > MAX_COMMENT_LENGTH) {
@@ -340,14 +334,12 @@ export const deleteComment = async (req: Request, res: Response) => {
 export const addLikeToComment = async (req: Request, res: Response) => {
   const videoId = req.params.videoId
   const commentId = req.params.commentId
-  const userId = req.body.userId
+  const userId = req.user
 
   if (!videoId) {
     return res.status(422).json({ message: 'Missing videoId parameter' })
   } else if (!commentId) {
     return res.status(422).json({ message: 'Missing commentId parameter' })
-  } else if (!userId) {
-    return res.status(422).json({ message: 'Missing userId parameter' })
   }
 
   // check if video exists
