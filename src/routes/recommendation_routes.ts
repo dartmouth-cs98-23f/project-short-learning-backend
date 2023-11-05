@@ -26,7 +26,7 @@ export const recommendationRouter = Router()
  *         500 if server error
  */
 recommendationRouter.get(
-  '/precomputed',
+  '/recommendations/precomputed',
   requireAuth,
   async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
     try {
@@ -53,7 +53,7 @@ recommendationRouter.get(
  *         500 if server error
  */
 recommendationRouter.put(
-  '/precomputed',
+  '/recommendations/precomputed',
   requireAdmin,
   async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
     try {
@@ -76,7 +76,7 @@ recommendationRouter.put(
  *         500 if server error
  */
 recommendationRouter.delete(
-  '/precomputed',
+  '/recommendations/precomputed',
   requireAdmin,
   async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
     try {

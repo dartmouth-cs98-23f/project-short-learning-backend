@@ -1,4 +1,4 @@
-const URL = 'localhost:3000'
+const URL = 'localhost:3000/api'
 
 describe('Precomputed Recommendations', () => {
   var videoIds = []
@@ -20,7 +20,7 @@ describe('Precomputed Recommendations', () => {
     function createVideo() {
       cy.request({
         method: 'PUT',
-        url: `${URL}/videos/video`,
+        url: `${URL}/videos`,
         body: {
           title: 'Sample Video',
           description: 'This is a sample video',
@@ -53,7 +53,7 @@ describe('Precomputed Recommendations', () => {
         var videoId = createResponse.body.videoId
         cy.request({
           method: 'GET',
-          url: `${URL}/videos/video/${videoId}`
+          url: `${URL}/videos/${videoId}`
         }).then((getResponse) => {
           expect(getResponse.status).to.eq(200)
           clips.push([

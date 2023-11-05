@@ -40,5 +40,6 @@ app.use('/api', userAffinityRoutes)
 app.use('/api', relationshipRoutes)
 app.use('/api', videoRouter)
 app.use('/api', videoAffinityRouter)
+app.use('/api', recommendationRouter)
 
 runApp()
