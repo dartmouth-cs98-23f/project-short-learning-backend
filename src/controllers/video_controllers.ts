@@ -29,8 +29,6 @@ export const createVideo = async (req: Request, res: Response) => {
   const description = req.body.description
   const clipDescriptions = req.body.clipDescriptions
   const uploader = req.body.uploader
-  const tags = req.body.tags
-  const clipTags = req.body.clipTags
   const duration = req.body.duration
   const clipDurations = req.body.clipDurations
   const thumbnailURL = req.body.thumbnailURL
@@ -40,7 +38,6 @@ export const createVideo = async (req: Request, res: Response) => {
   const clipArray = [
     clipTitles,
     clipDescriptions,
-    clipTags,
     clipDurations,
     clipThumbnailURLs,
     clipLinks
@@ -75,7 +72,6 @@ export const createVideo = async (req: Request, res: Response) => {
     description: description,
     uploadDate: new Date(),
     uploader: uploader,
-    tags: tags,
     duration: duration,
     thumbnailURL: thumbnailURL,
     clips: [],
@@ -95,7 +91,6 @@ export const createVideo = async (req: Request, res: Response) => {
       description: clipDescriptions[i],
       uploadDate: new Date(),
       uploader: uploader,
-      tags: clipTags[i],
       duration: clipDurations[i],
       thumbnailURL: clipThumbnailURLs[i],
       clipURL: clipLinks[i],

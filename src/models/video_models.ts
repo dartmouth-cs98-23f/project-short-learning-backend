@@ -6,7 +6,6 @@ export interface VideoMetadataDocument extends Document {
   description: string
   uploadDate: Date
   uploader: mongoose.Types.ObjectId // userID
-  tags: string[]
   duration: number // Seconds
   thumbnailURL: string // Link to S3
   clips: mongoose.Types.ObjectId[]
@@ -21,7 +20,6 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
     description: { type: String, required: false },
     uploadDate: { type: Date, required: true },
     uploader: { type: Schema.Types.ObjectId, required: false },
-    tags: { type: [String], required: false },
     duration: { type: Number, required: true },
     thumbnailURL: { type: String, required: false },
     clips: {
