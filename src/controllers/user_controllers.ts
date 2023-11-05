@@ -48,7 +48,7 @@ export const signup = async ({
   user.lastLoginDate = new Date()
   user.onBoardingStatus = 'verifying'
   await user.save()
-  await sendVerificationEmail(user)
+  // await sendVerificationEmail(user)
 
   return tokenForUser(user)
 }
