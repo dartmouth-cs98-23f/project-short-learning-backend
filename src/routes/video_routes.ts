@@ -2,6 +2,7 @@ import { Router } from 'express'
 import * as Video from '../controllers/video_controllers'
 import * as VideoAffinity from '../controllers/video_affinity_controller'
 import { logger } from '../services/logger'
+import { requireAdmin, requireAuth } from '../services/passport'
 const videoRouter = Router()
 
 /**
@@ -28,7 +29,7 @@ const videoRouter = Router()
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.get('/videos/:videoId', async (req, res) => {
+videoRouter.get('/videos/:videoId', requireAuth, async (req, res) => {
   try {
     return await Video.getVideoById(req, res)
   } catch (error) {
@@ -40,6 +41,8 @@ videoRouter.get('/videos/:videoId', async (req, res) => {
  * PUT request to create a new video, used by internal services and is not for user uploads
  * - See src/models/video_models.ts for the VideoMetadata schema
  * - See src/models/clip_models.ts for the ClipMetadata schema
+ *
+ * @headers Authorization // Admin JWT token
  *
  * @bodyparam title: string // the title of the video
  * @bodyparam description: string // the description of the video
@@ -60,7 +63,7 @@ videoRouter.get('/videos/:videoId', async (req, res) => {
  *         422 if any data is missing
  *         500 if server error
  */
-videoRouter.put('/videos', async (req, res) => {
+videoRouter.put('/videos', requireAdmin, async (req, res) => {
   try {
     return await Video.createVideo(req, res)
   } catch (error) {
@@ -72,6 +75,8 @@ videoRouter.put('/videos', async (req, res) => {
 /**
  * DELETE request to delete a video
  *
+ * @headers Authorization // Admin JWT token
+ *
  * @pathparam videoId: ObjectId // the videoId of the video to delete
  *
  * @returns message: string // a message indicating success or failure
@@ -81,7 +86,7 @@ videoRouter.put('/videos', async (req, res) => {
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.delete('/videos/:videoId', async (req, res) => {
+videoRouter.delete('/videos/:videoId', requireAdmin, async (req, res) => {
   try {
     return await Video.deleteVideo(req, res)
   } catch (error) {
@@ -93,8 +98,9 @@ videoRouter.delete('/videos/:videoId', async (req, res) => {
 /**
  * POST request to add a like to a video
  *
+ * @headers Authorization // the JWT token of the user liking the video
+ *
  * @pathparam videoId // the videoId of the video to like
- * @bodyparam userId // the userId of the user liking the video
  *
  * @returns message // a message indicating success or failure
  *          likes // the number of likes on this video
@@ -103,7 +109,7 @@ videoRouter.delete('/videos/:videoId', async (req, res) => {
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.post('/videos/:videoId/like', async (req, res) => {
+videoRouter.post('/videos/:videoId/like', requireAuth, async (req, res) => {
   try {
     return await Video.addLike(req, res)
   } catch (error) {
@@ -114,8 +120,9 @@ videoRouter.post('/videos/:videoId/like', async (req, res) => {
 /**
  * POST request to add a dislike to a video
  *
+ * @headers Authorization // the JWT token of the user disliking the video
+ *
  * @pathparam videoId // the videoId of the video to dislike
- * @bodyparam userId // the userId of the user disliking the video
  *
  * @returns message // a message indicating success or failure
  *          dislikes // the number of dislikes on this video
@@ -124,7 +131,7 @@ videoRouter.post('/videos/:videoId/like', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.post('/videos/:videoId/dislike', async (req, res) => {
+videoRouter.post('/videos/:videoId/dislike', requireAuth, async (req, res) => {
   try {
     return await Video.addDislike(req, res)
   } catch (error) {
@@ -136,8 +143,9 @@ videoRouter.post('/videos/:videoId/dislike', async (req, res) => {
  * GET request to get all comments for a video
  * - See src/models/comment_model.ts for the comments schema
  *
+ * @headers Authorization // the JWT token of the user getting the comments
+ *
  * @pathparam videoId // the videoId of the video to get comments for
- * @bodyparam userId // the userId of the user getting the comments
  * @bodyparam limit // the number of comments to get (default 50)
  *
  * @returns message // a message indicating success or failure
@@ -148,7 +156,7 @@ videoRouter.post('/videos/:videoId/dislike', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.get('/videos/:videoId/comments', async (req, res) => {
+videoRouter.get('/videos/:videoId/comments', requireAuth, async (req, res) => {
   try {
     return await Video.getComments(req, res)
   } catch (error) {
@@ -159,6 +167,8 @@ videoRouter.get('/videos/:videoId/comments', async (req, res) => {
 /**
  * POST request to add a comment to a video
  * - See src/models/comment_model.ts for the comments schema
+ *
+ * @headers Authorization // the JWT token of the user adding the comment
  *
  * @pathparam videoId // the videoId of the video to add a comment to
  * @bodyparam userId // the userId of the user adding the comment
@@ -172,7 +182,7 @@ videoRouter.get('/videos/:videoId/comments', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.post('/videos/:videoId/comment', async (req, res) => {
+videoRouter.post('/videos/:videoId/comment', requireAuth, async (req, res) => {
   try {
     return await Video.addComment(req, res)
   } catch (error) {
@@ -184,27 +194,35 @@ videoRouter.post('/videos/:videoId/comment', async (req, res) => {
  * DELETE request to delete a comment from a video, including all nested comments
  * - See src/models/comment_model.ts for the comments schema
  *
+ * @headers Authorization // Admin JWT token
+ *
  * @pathparam videoId // the videoId of the video to delete a comment from
  * @pathparam commentId // the commentId of the comment to delete
  *
  * @returns message // a message indicating success or failure
  *
- * @errors 422 // if videoId or commentId is missing
+ * @errors 422 /s videoId or commentId is missing
  *         404 // if video or comment is not found
  *         500 // if server error
  *
  */
-videoRouter.delete('/videos/:videoId/comment/:commentId', async (req, res) => {
-  try {
-    return await Video.deleteComment(req, res)
-  } catch (error) {
-    return res.status(500).json({ message: 'Server Error' })
+videoRouter.delete(
+  '/videos/:videoId/comment/:commentId',
+  requireAdmin,
+  async (req, res) => {
+    try {
+      return await Video.deleteComment(req, res)
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error' })
+    }
   }
-})
+)
 
 /**
  * POST request to add a like to a comment
  * - See src/models/comment_model.ts for the comments schema
+ *
+ * @headers Authorization // the JWT token of the user liking the comment
  *
  * @pathparam videoId // the videoId of the video to add a comment to
  * @pathparam commentId // the commentId of the comment to like
@@ -219,6 +237,7 @@ videoRouter.delete('/videos/:videoId/comment/:commentId', async (req, res) => {
  */
 videoRouter.post(
   '/videos/:videoId/comment/:commentId/like',
+  requireAuth,
   async (req, res) => {
     try {
       return await Video.addLikeToComment(req, res)

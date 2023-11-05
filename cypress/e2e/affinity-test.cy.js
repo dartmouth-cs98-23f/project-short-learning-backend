@@ -183,22 +183,6 @@ describe('User Affinity Test', () => {
       expect(response.status).to.eq(422)
     })
   })
-
-  it('Deleting user', () => {
-    cy.request({
-      method: 'DELETE',
-      url: `${URL}/user/`,
-      headers: {
-        Authorization: token
-      },
-      body: {
-        email,
-        password: '123!!!'
-      }
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-    })
-  })
 })
 
 let videoId = ''
@@ -237,6 +221,9 @@ describe('Video Affinity Test', () => {
       videoId = createResponse.body.videoId
       cy.request({
         method: 'GET',
+        headers: {
+          Authorization: token
+        },
         url: `${URL}/videos/${videoId}`
       }).then((getResponse) => {
         expect(getResponse.status).to.eq(200)
