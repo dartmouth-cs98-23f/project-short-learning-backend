@@ -7,7 +7,6 @@ export interface ClipMetadataDocument extends Document {
   description: string
   uploadDate: Date
   uploader: mongoose.Types.ObjectId // userID
-  tags: string[]
   duration: number // Seconds
   thumbnailURL: string // Link to S3
   clipURL: string // Link to CDN Manifest
@@ -23,7 +22,6 @@ const clipMetadataSchema = new Schema<ClipMetadataDocument>(
     description: { type: String, required: false },
     uploadDate: { type: Date, required: true },
     uploader: { type: Schema.Types.ObjectId, ref: 'Users', required: false },
-    tags: { type: [String], required: false },
     duration: { type: Number, required: true },
     thumbnailURL: { type: String, required: false },
     clipURL: { type: String, required: true },
