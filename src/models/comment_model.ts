@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose'
-import { arrayHasNoDuplicates } from '../utils/validators'
+import { arrayHasNoDuplicates } from '../utils/schema_validators'
 
 /**
  * Comment Model
