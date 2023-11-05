@@ -1,5 +1,5 @@
 import mongoose, { Schema, model, Document } from 'mongoose'
-import { arrayHasNoDuplicates } from '../utils/validators'
+import { arrayHasNoDuplicates } from '../utils/schema_validators'
 
 export interface VideoMetadataDocument extends Document {
   title: string
