@@ -1,5 +1,21 @@
 import mongoose, { Schema } from 'mongoose';
 var bcrypt = require('bcryptjs');
+import { arrayLimit } from '../utils/schema_validators';
+
+export interface CurrentVideo {
+  videoId: mongoose.Types.ObjectId
+  index: number
+  timestamp: Date
+}
+
+const currentVideoSchema = new Schema<CurrentVideo>(
+  {
+    videoId: { type: Schema.Types.ObjectId, required: true },
+    index: { type: Number, required: true },
+    timestamp: { type: Date, required: true }
+  },
+  { timestamps: true, collection: 'current_videos' }
+)
 
 const UserSchema = new Schema({
   firstName: String,
@@ -14,6 +30,14 @@ const UserSchema = new Schema({
   onBoardingStatus: String,
   emailVerificationCode: { type: Number, select: false },
   isAdmin: { type: Boolean, default: false },
+  currentSequence: {
+    type: [currentVideoSchema],
+    required: true,
+    validate: {
+      validator: arrayLimit(10),
+      message: 'CurrentVideos array must have at most 10 elements'
+    }
+  }
 }, {
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
