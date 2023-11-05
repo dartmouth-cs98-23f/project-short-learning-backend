@@ -240,4 +240,21 @@ describe('Precomputed Recommendations', () => {
       )
     })
   })
+
+  it('Getting a new playlist recommendation, no skip', () => {
+    cy.request({
+      method: 'POST',
+      url: `${URL}/recommendations/newplaylist`,
+      headers: {
+        Authorization: token
+      },
+      body: {
+        isSkip: false,
+      }
+    }).then((getResponse) => {
+      expect(getResponse.status).to.eq(200)
+      expect(getResponse.body.newPlaylist._id).to.eq(videoIds[1])
+      expect(getResponse.body.newPlaylist.clips[0]._id).to.eq(clips[1][0]._id)
+    })
+  })
 })
