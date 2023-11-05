@@ -5,7 +5,7 @@ import { VideoMetadata } from '../models/video_models'
 const fs = require('fs');
 
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8');
-const affinitiesTruthTable = fileContent.split('\r\n');
+const affinitiesTruthTable = fileContent.split(/[\r\n]+/);
 
 export const createVideoAffinity = async (videoId, { affinities }) => {
   try {

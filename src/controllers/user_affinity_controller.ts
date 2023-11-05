@@ -1,10 +1,11 @@
 import UserAffinity from "../models/user_affinity_model";
+import { logger } from "../services/logger";
 
 // import the list of strings from src\utils\affinityTruthTable and make it a truth table for the affinity topics
 const fs = require('fs');
 
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8');
-const affinitiesTruthTable = fileContent.split('\r\n');
+const affinitiesTruthTable = fileContent.split(/[\r\n]+/);
 
 export const createUserAffinities = async (user, { affinities }) => {
   try {

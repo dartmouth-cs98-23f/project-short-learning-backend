@@ -1,8 +1,11 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import apiRoutes from './router'
-import { videoRouter } from './routes/video_routes'
+import userRoutes from './routes/user_routes'
+import userAffinityRoutes from './routes/user_affinity_routes'
+import relationshipRoutes from './routes/relationship_routes'
+import videoRouter from './routes/video_routes'
+import videoAffinityRouter from './routes/video_affinity_routes'
 import mongoose from 'mongoose'
 import { logger, requestLogger, responseLogger } from './services/logger'
 
@@ -32,7 +35,10 @@ async function runApp() {
   }
 }
 
-app.use('/api', apiRoutes)
-app.use('/videos', videoRouter)
+app.use('/api', userRoutes)
+app.use('/api', userAffinityRoutes)
+app.use('/api', relationshipRoutes)
+app.use('/api', videoRouter)
+app.use('/api', videoAffinityRouter)
 
 runApp()

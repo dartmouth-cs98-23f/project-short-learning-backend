@@ -2,17 +2,17 @@ import { Router } from 'express'
 import * as Video from '../controllers/video_controllers'
 import * as VideoAffinity from '../controllers/video_affinity_controller'
 import { logger } from '../services/logger'
-export const videoRouter = Router()
+const videoRouter = Router()
 
 /**
  *
- * GET /video/:videoId
+ * GET /videos/:videoId
  * PUT /video
- * POST /video/:videoId/like
- * POST /video/:videoId/dislike
- * GET /video/:videoId/comments
- * POST /video/:videoId/comment
- * POST /video/:videoId/comment/:commentId/like
+ * POST /videos/:videoId/like
+ * POST /videos/:videoId/dislike
+ * GET /videos/:videoId/comments
+ * POST /videos/:videoId/comment
+ * POST /videos/:videoId/comment/:commentId/like
  */
 
 /**
@@ -28,7 +28,7 @@ export const videoRouter = Router()
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.get('/video/:videoId', async (req, res) => {
+videoRouter.get('/videos/:videoId', async (req, res) => {
   try {
     return await Video.getVideoById(req, res)
   } catch (error) {
@@ -60,7 +60,7 @@ videoRouter.get('/video/:videoId', async (req, res) => {
  *         422 if any data is missing
  *         500 if server error
  */
-videoRouter.put('/video', async (req, res) => {
+videoRouter.put('/videos', async (req, res) => {
   try {
     return await Video.createVideo(req, res)
   } catch (error) {
@@ -81,7 +81,7 @@ videoRouter.put('/video', async (req, res) => {
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.delete('/video/:videoId', async (req, res) => {
+videoRouter.delete('/videos/:videoId', async (req, res) => {
   try {
     return await Video.deleteVideo(req, res)
   } catch (error) {
@@ -103,7 +103,7 @@ videoRouter.delete('/video/:videoId', async (req, res) => {
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.post('/video/:videoId/like', async (req, res) => {
+videoRouter.post('/videos/:videoId/like', async (req, res) => {
   try {
     return await Video.addLike(req, res)
   } catch (error) {
@@ -124,7 +124,7 @@ videoRouter.post('/video/:videoId/like', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.post('/video/:videoId/dislike', async (req, res) => {
+videoRouter.post('/videos/:videoId/dislike', async (req, res) => {
   try {
     return await Video.addDislike(req, res)
   } catch (error) {
@@ -148,7 +148,7 @@ videoRouter.post('/video/:videoId/dislike', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.get('/video/:videoId/comments', async (req, res) => {
+videoRouter.get('/videos/:videoId/comments', async (req, res) => {
   try {
     return await Video.getComments(req, res)
   } catch (error) {
@@ -172,7 +172,7 @@ videoRouter.get('/video/:videoId/comments', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.post('/video/:videoId/comment', async (req, res) => {
+videoRouter.post('/videos/:videoId/comment', async (req, res) => {
   try {
     return await Video.addComment(req, res)
   } catch (error) {
@@ -195,7 +195,7 @@ videoRouter.post('/video/:videoId/comment', async (req, res) => {
  *         500 // if server error
  * 
  */
-videoRouter.delete('/video/:videoId/comment/:commentId', async (req, res) => {
+videoRouter.delete('/videos/:videoId/comment/:commentId', async (req, res) => {
   try {
     return await Video.deleteComment(req, res)
   } catch (error) {
@@ -219,7 +219,7 @@ videoRouter.delete('/video/:videoId/comment/:commentId', async (req, res) => {
  *         500 // if server error
  */
 videoRouter.post(
-  '/video/:videoId/comment/:commentId/like',
+  '/videos/:videoId/comment/:commentId/like',
   async (req, res) => {
     try {
       return await Video.addLikeToComment(req, res)
@@ -241,7 +241,7 @@ videoRouter.post(
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.get('/video/:videoId/affinities', async (req, res) => {
+videoRouter.get('/videos/:videoId/affinities', async (req, res) => {
   try {
     const videoAffinity = await VideoAffinity.getVideoAffinities(req.params.videoId);
     return res.json(videoAffinity);
@@ -263,7 +263,7 @@ videoRouter.get('/video/:videoId/affinities', async (req, res) => {
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.post('/video/:videoId/affinities', async (req, res) => {
+videoRouter.post('/videos/:videoId/affinities', async (req, res) => {
   try {
     const videoAffinity = await VideoAffinity.createVideoAffinity(req.params.videoId, req.body);
     return res.json(videoAffinity);
@@ -286,7 +286,7 @@ videoRouter.post('/video/:videoId/affinities', async (req, res) => {
  *         500 // if server error
  */
 
-videoRouter.put('/video/:videoId/affinities', async (req, res) => {
+videoRouter.put('/videos/:videoId/affinities', async (req, res) => {
   try {
     const videoAffinity = await VideoAffinity.updateVideoAffinities(req.params.videoId, req.body);
     return res.json(videoAffinity);
@@ -308,7 +308,7 @@ videoRouter.put('/video/:videoId/affinities', async (req, res) => {
  *         500 // if server error
  * 
  */
-videoRouter.delete('/video/:videoId/affinities', async (req, res) => {
+videoRouter.delete('/videos/:videoId/affinities', async (req, res) => {
   try {
     const success = await VideoAffinity.deleteVideoAffinities(req.params.videoId);
     return res.json({ success });
@@ -316,3 +316,5 @@ videoRouter.delete('/video/:videoId/affinities', async (req, res) => {
     return res.status(422).json({ message: error.toString() })
   }
 });
+
+export default videoRouter;
