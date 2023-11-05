@@ -15,7 +15,7 @@ const recommendationSchema = new Schema<Recommendation>(
     clipIndex: { type: Number, required: false },
     topicId: { type: String, required: false }
   },
-  { timestamps: true, collection: 'Recommendations' }
+  { timestamps: true, collection: 'recommendations' }
 )
 
 /**
@@ -63,3 +63,8 @@ export const PrecomputedRecommendations =
     'PrecomputedRecommendations',
     precomputedRecommendationsSchema
   )
+
+export interface GetNewRecommendationBodyParams {
+  userId: mongoose.Types.ObjectId
+  isSkip: boolean
+}

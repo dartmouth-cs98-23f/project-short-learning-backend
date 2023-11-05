@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import {
+  GetNewRecommendationBodyParams,
   PrecomputedRecommendations,
   PrecomputedRecommendationsDocument
 } from '../models/recommendation_models'
@@ -116,4 +117,12 @@ export const deletePrecomputedRecommendations = async (
   return res
     .status(200)
     .json({ message: 'Success, precomputed recommendations deleted' })
+}
+
+export const getNewPrecomputedVideoRecommendation = async (
+  req: Request<{}, {}, GetNewRecommendationBodyParams>,
+  res: Response
+) => {
+  // todo
+  return res.status(200).json({ message: 'Success' })
 }

@@ -1,8 +1,9 @@
 import { Request, Router } from 'express'
-import { PrecomputedRecommendationsDocument } from '../models/recommendation_models'
+import { GetNewRecommendationBodyParams, PrecomputedRecommendationsDocument } from '../models/recommendation_models'
 import { requireAdmin, requireAuth } from '../services/passport'
 import {
   deletePrecomputedRecommendations,
+  getNewPrecomputedVideoRecommendation,
   getPrecomputedRecommendations,
   updatePrecomputedRecommendations
 } from '../controllers/recommendation_controllers'
@@ -82,3 +83,11 @@ recommendationRouter.delete(
     }
   }
 )
+
+recommendationRouter.post('/newVideo', requireAuth, async (req: Request<{}, {}, GetNewRecommendationBodyParams> , res) => {
+  try {
+    getNewPrecomputedVideoRecommendation(req, res)
+  } catch (error) {
+    return res.status(500).json({ message: 'Server Error' })
+  }
+})
