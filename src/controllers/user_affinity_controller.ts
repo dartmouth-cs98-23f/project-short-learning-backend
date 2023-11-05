@@ -7,8 +7,6 @@ const fs = require('fs');
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8');
 const affinitiesTruthTable = fileContent.split(/[\r\n]+/);
 
-logger.debug(`affinitiesTruthTable: ${typeof affinitiesTruthTable}`);
-
 export const createUserAffinities = async (user, { affinities }) => {
   try {
     const existingUserAffinity = await UserAffinity.findOne({ userId: user._id });
