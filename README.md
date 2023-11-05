@@ -1,6 +1,6 @@
 # Project Short Learning Backend/API
 
-* node
-* expressjs
+- node
+- expressjs
 
-See package.json "scripts" for commands. 
+See package.json "scripts" for commands.

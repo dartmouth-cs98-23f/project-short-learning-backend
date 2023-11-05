@@ -25,8 +25,7 @@ app.use(responseLogger)
 
 async function runApp() {
   try {
-    const mongoURI =
-      process.env.MONGODB_URI
+    const mongoURI = process.env.MONGODB_URI
     await mongoose.connect(mongoURI)
     await app.listen(port)
     console.log(`Server listening at http://localhost:${port}`)

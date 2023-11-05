@@ -1,6 +1,8 @@
-const getUniqueId = () => { return Cypress._.uniqueId(Date.now().toString()); };
-const email = `${getUniqueId()}@test.com`;
-let token = '';
+const getUniqueId = () => {
+  return Cypress._.uniqueId(Date.now().toString())
+}
+const email = `${getUniqueId()}@test.com`
+let token = ''
 
 describe('Authentication', () => {
   it('Signing Up New User', () => {
@@ -8,12 +10,12 @@ describe('Authentication', () => {
       method: 'POST',
       url: 'http://localhost:3000/api/auth/signup',
       body: {
-        firstName: "Test",
-        lastName: "User",
+        firstName: 'Test',
+        lastName: 'User',
         email,
-        username: `${getUniqueId()}`, 
-        password: "123!!!", 
-        birthDate: "2000-10-10"
+        username: `${getUniqueId()}`,
+        password: '123!!!',
+        birthDate: '2000-10-10'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -28,14 +30,13 @@ describe('Authentication', () => {
       url: 'http://localhost:3000/api/auth/signin',
       body: {
         email,
-        password: "123!!!"
+        password: '123!!!'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('token')
       token = response.body.token
-    }
-    )
+    })
   })
 
   it('Getting user info', () => {
@@ -43,7 +44,7 @@ describe('Authentication', () => {
       method: 'GET',
       url: 'http://localhost:3000/api/user',
       headers: {
-        'Authorization': token
+        Authorization: token
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -60,15 +61,15 @@ describe('Authentication', () => {
       method: 'PUT',
       url: 'http://localhost:3000/api/user',
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
-        firstName: "Test",
-        lastName: "User",
+        firstName: 'Test',
+        lastName: 'User',
         email,
-        username: `${getUniqueId()}`, 
-        birthDate: "2000-10-10",
-        profilePicture: "test.png"
+        username: `${getUniqueId()}`,
+        birthDate: '2000-10-10',
+        profilePicture: 'test.png'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -78,24 +79,24 @@ describe('Authentication', () => {
       expect(response.body).to.have.property('lastName')
       expect(response.body).to.have.property('birthDate')
     })
-  });
+  })
 
   it('Changing papssword', () => {
     cy.request({
       method: 'PUT',
       url: 'http://localhost:3000/api/user',
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         email,
-        password: "123!!!",
-        newPassword: "1234!!!"
+        password: '123!!!',
+        newPassword: '1234!!!'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
-  });
+  })
 
   it('Failed to change new password because it is same as old, expect error', () => {
     cy.request({
@@ -103,17 +104,17 @@ describe('Authentication', () => {
       method: 'PUT',
       url: 'http://localhost:3000/api/user',
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         email,
-        password: "1234!!!",
-        newPassword: "1234!!!"
+        password: '1234!!!',
+        newPassword: '1234!!!'
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
-  });
+  })
 
   it('Delete User, expected to fail because it requires email and password to delete', () => {
     cy.request({
@@ -121,28 +122,28 @@ describe('Authentication', () => {
       method: 'DELETE',
       url: 'http://localhost:3000/api/user',
       headers: {
-        'Authorization': token
+        Authorization: token
       }
     }).then((response) => {
       expect(response.status).to.eq(400)
     })
-  });
+  })
 
   it('Delete User', () => {
     cy.request({
       method: 'DELETE',
       url: 'http://localhost:3000/api/user',
       headers: {
-        'Authorization': token
+        Authorization: token
       },
       body: {
         email,
-        password: "1234!!!"
+        password: '1234!!!'
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
-  });
+  })
 
   it('Logging in as deleted User, expected to fail', () => {
     cy.request({
@@ -151,12 +152,10 @@ describe('Authentication', () => {
       url: 'http://localhost:3000/api/auth/signin',
       body: {
         email,
-        password: "1234!!!"
+        password: '1234!!!'
       }
     }).then((response) => {
       expect(response.status).to.eq(401)
-    }
-    )
-  });
+    })
+  })
 })
-
