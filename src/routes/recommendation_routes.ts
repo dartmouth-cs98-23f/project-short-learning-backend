@@ -10,7 +10,7 @@ import {
   getPrecomputedRecommendations,
   updatePrecomputedRecommendations
 } from '../controllers/recommendation_controllers'
-export const recommendationRouter = Router()
+const recommendationRouter = Router()
 
 /**
  * GET request to get precomputed recommendations
@@ -98,3 +98,5 @@ recommendationRouter.post(
     }
   }
 )
+
+export default recommendationRouter
