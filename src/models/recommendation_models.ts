@@ -9,10 +9,10 @@ export interface Recommendation {
   topicId: string
 }
 
-const recommendationSchema = new Schema<Recommendation>(
+export const recommendationSchema = new Schema<Recommendation>(
   {
     videoId: { type: Schema.Types.ObjectId, required: true },
-    clipIndex: { type: Number, required: false },
+    clipIndex: { type: Number, required: true },
     topicId: { type: String, required: false }
   },
   { timestamps: true, collection: 'recommendations' }

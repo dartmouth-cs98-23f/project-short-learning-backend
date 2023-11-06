@@ -1,6 +1,9 @@
 import { Router } from 'express'
-import { requireAuth, requireSignin } from '../services/passport'
+import { requireAdmin, requireAuth, requireSignin } from '../services/passport'
 import * as User from '../controllers/user_controllers'
+import { updateUserSequence } from '../controllers/user_controllers'
+import { validateSequence } from '../services/user_middleware'
+import { UserDocument } from '../models/user_model'
 
 const router = Router()
 
@@ -191,5 +194,39 @@ router.post('/user/resend', requireAuth, async (req, res) => {
     res.status(422).send({ error: error.toString() })
   }
 })
+
+/**
+ * PUT request to update user sequence
+ * - See src/models/user_model.ts for the User schema
+ * The validateSequence middleware validates the sequence and userId
+ *
+ * @headers Authorization // An admin JWT token
+ *
+ * @bodyparam userId: ObjectId // The user's id
+ * @bodyparam sequence: Recommendation[] // The playlist sequence
+ *
+ * @returns 200 // if success
+ *          401 // if unauthorized
+ *          422 // if invalid sequence or user
+ *          500 // if server error
+ *
+ */
+router.put(
+  '/user/sequence',
+  [requireAdmin, validateSequence],
+  async (req, res) => {
+    try {
+      const user: UserDocument = await updateUserSequence(
+        req.body.userId,
+        req.body.sequence
+      )
+      return res
+        .status(200)
+        .json({ message: 'Successfully updated user sequence', user })
+    } catch (error) {
+      res.status(500).send({ message: 'Server Error' })
+    }
+  }
+)
 
 export default router
