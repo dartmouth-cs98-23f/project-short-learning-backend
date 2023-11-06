@@ -147,11 +147,11 @@ describe('Precomputed Recommendations', () => {
     const topVideoRecommendations = [
       {
         videoId: videoIds[0],
-        clipsIndex: 0
+        clipIndex: 0
       },
       {
         videoId: videoIds[1],
-        clipsIndex: 1
+        clipIndex: 1
       }
     ]
     cy.request({
