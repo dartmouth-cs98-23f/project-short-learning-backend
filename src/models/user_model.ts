@@ -1,23 +1,26 @@
-import mongoose, { Schema } from 'mongoose'
-var bcrypt = require('bcryptjs')
+import mongoose, { Document, Schema } from 'mongoose'
 import { arrayLimit } from '../utils/schema_validators'
+import { Recommendation, recommendationSchema } from './recommendation_models'
+var bcrypt = require('bcryptjs')
 
-export interface CurrentVideo {
-  videoId: mongoose.Types.ObjectId
-  index: number
-  timestamp: Date
+export interface UserDocument extends Document {
+  firstName: string
+  lastName: string
+  username: string
+  email: string
+  password: string
+  birthDate: Date
+  registrationDate: Date
+  lastLoginDate: Date
+  profilePicture: string
+  onBoardingStatus: string
+  emailVerificationCode: number
+  isAdmin: boolean
+  currentSequence: Recommendation[]
+  comparePassword(candidatePassword: string): Promise<boolean>
 }
 
-const currentVideoSchema = new Schema<CurrentVideo>(
-  {
-    videoId: { type: Schema.Types.ObjectId, required: true },
-    index: { type: Number, required: true },
-    timestamp: { type: Date, required: true }
-  },
-  { timestamps: true, collection: 'current_videos' }
-)
-
-const UserSchema = new Schema(
+const UserSchema = new Schema<UserDocument>(
   {
     firstName: String,
     lastName: String,
@@ -32,7 +35,7 @@ const UserSchema = new Schema(
     emailVerificationCode: { type: Number, select: false },
     isAdmin: { type: Boolean, default: false },
     currentSequence: {
-      type: [currentVideoSchema],
+      type: [recommendationSchema],
       required: true,
       validate: {
         validator: arrayLimit(10),
@@ -43,7 +46,8 @@ const UserSchema = new Schema(
   {
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
-    timestamps: true
+    timestamps: true,
+    collection: 'user'
   }
 )
 
