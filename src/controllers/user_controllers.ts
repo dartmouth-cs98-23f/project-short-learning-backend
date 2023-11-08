@@ -1,7 +1,7 @@
 import jwt from 'jwt-simple';
 import User from '../models/user_model';
 import UserAffinity from '../models/user_affinity_model';
-import { sendEmail } from '../utils/sendEmail';
+import { sendEmail } from '../utils/sendVerificationEmail';
 
 export const signin = (user) => {
   return tokenForUser(user);
