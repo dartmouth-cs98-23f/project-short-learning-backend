@@ -2,7 +2,7 @@ import { Schema, model, Document } from 'mongoose'
 
 export interface TopicMetadataDocument extends Document {
   topicName: string
-  subTopicNames: string | undefined
+  subTopicName: string | undefined
   description: string
   thumbnailURL: string
 }
@@ -10,7 +10,7 @@ export interface TopicMetadataDocument extends Document {
 const topicMetadataSchema = new Schema<TopicMetadataDocument>(
   {
     topicName: { type: String, required: true },
-    subTopicNames: { type: String, required: false },
+    subTopicName: { type: String, required: false },
     description: { type: String, required: true },
     thumbnailURL: { type: String, required: true }
   },
