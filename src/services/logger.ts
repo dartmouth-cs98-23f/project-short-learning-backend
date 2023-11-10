@@ -17,14 +17,16 @@ const levels = {
   error: 0,
   warn: 1,
   info: 2,
-  debug: 3
+  debug: 3,
+  silly: 4
 }
 
 const color = {
   error: 'red',
   warn: 'yellow',
   info: 'green',
-  debug: 'blue'
+  debug: 'blue',
+  silly: 'white'
 }
 
 const format = winston.format.combine(
@@ -38,7 +40,9 @@ const format = winston.format.combine(
 export const logger = winston.createLogger({
   levels,
   format,
-  transports: [new winston.transports.File({ filename: 'logs/all.log' })]
+  transports: [
+    new winston.transports.File({ filename: 'logs/all.log', level: 'silly' })
+  ]
 })
 
 winston.addColors(color)
@@ -46,25 +50,41 @@ winston.addColors(color)
 if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
-      format
+      format,
+      level: 'debug'
     })
   )
 }
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+export const requestLogger = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   logger.info(`Request: ${req.method} ${req.originalUrl}`)
   next()
 }
 
-export const responseLogger = (req: Request, res: Response, next: NextFunction) => {
+export const responseLogger = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const originalSend = res.send
+
+  res.send = function (body) {
+    const responseBody = body instanceof Buffer ? body.toString() : body
+
+    logger.silly(`Response Body: ${responseBody}`)
+
+    return originalSend.apply(this, arguments)
+  }
   res.on('finish', () => {
     if (res.statusCode === 200) {
       logger.info(`Response: ${res.statusCode} ${res.statusMessage}`)
-    }    
-    else if (res.statusCode >= 400 && res.statusCode < 500) {
+    } else if (res.statusCode >= 400 && res.statusCode < 500) {
       logger.warn(`Response: ${res.statusCode} ${res.statusMessage}`)
-    }
-    else if (res.statusCode >= 500) {
+    } else if (res.statusCode >= 500) {
       logger.error(`Response: ${res.statusCode} ${res.statusMessage}`)
     }
   })

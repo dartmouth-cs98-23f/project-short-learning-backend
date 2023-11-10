@@ -1,9 +1,9 @@
-import { createTransporter } from './createTransporter';
-import mjml2html from 'mjml';
+import { createTransporter } from './createTransporter'
+import mjml2html from 'mjml'
 
 export const sendEmail = async (user) => {
-    const transporter = createTransporter();
-    const content = mjml2html(`
+  const transporter = createTransporter()
+  const content = mjml2html(`
       <mjml>
         <mj-body>
           <mj-section>
@@ -18,12 +18,12 @@ export const sendEmail = async (user) => {
           </mj-section>
         </mj-body>
       </mjml>
-    `);
+    `)
 
-    const info = await transporter.sendMail({
-        from: '"No Reply" <no-reply-short-form-learning@outlook.com>',
-        to: user.email,
-        subject: 'Short Form Learning - Verify your email',
-        html: content.html,
-    });
-};
+  const info = await transporter.sendMail({
+    from: '"No Reply" <no-reply-short-form-learning@outlook.com>',
+    to: user.email,
+    subject: 'Short Form Learning - Verify your email',
+    html: content.html
+  })
+}

@@ -1,69 +1,94 @@
-import passport from 'passport';
-import LocalStrategy from 'passport-local';
-import dotenv from 'dotenv';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import passport from 'passport'
+import LocalStrategy from 'passport-local'
+import dotenv from 'dotenv'
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
-import User from '../models/user_model';
+import User from '../models/user_model'
 
-dotenv.config();
+dotenv.config()
 
 // Passport set up from CS 52
 
 // options for local strategy, we'll use email AS the username
 // not have separate ones
-const localOptions = { usernameField: 'email' };
+const localOptions = { usernameField: 'email' }
 
 // options for jwt strategy
 // we'll pass in the jwt in an `authorization` header
 // so passport can find it there
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromHeader('authorization'),
-  secretOrKey: process.env.AUTH_SECRET,
-};
+  secretOrKey: process.env.AUTH_SECRET
+}
 // NOTE: we are not calling this a bearer token (although it technically is), if you see people use Bearer in front of token on the internet you could either ignore it, use it but then you have to parse it out here as well as prepend it on the frontend.
 
 // username/email + password authentication strategy
-const localLogin = new LocalStrategy(localOptions, async (email, password, done) => {
-  let user;
-  let isMatch;
+const localLogin = new LocalStrategy(
+  localOptions,
+  async (email, password, done) => {
+    let user
+    let isMatch
 
-  try {
-    user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return done(null, false);
+    try {
+      user = await User.findOne({ email }).select('+password')
+      if (!user) {
+        return done(null, false)
+      }
+      isMatch = await user.comparePassword(password)
+      if (!isMatch) {
+        return done(null, false)
+      } else {
+        return done(null, user)
+      }
+    } catch (error) {
+      return done(error)
     }
-    isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return done(null, false);
-    } else {
-      return done(null, user);
-    }
-  } catch (error) {
-    return done(error);
   }
-});
+)
 
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   // See if the user ID in the payload exists in our database
   // If it does, call 'done' with that other
   // otherwise, call done without a user object
-  let user;
+  let user
   try {
-    user = await User.findById(payload.sub);
+    user = await User.findById(payload.sub)
   } catch (error) {
-    done(error, false);
+    done(error, false)
   }
   if (user) {
-    done(null, user);
+    done(null, user)
   } else {
-    done(null, false);
+    done(null, false)
   }
-});
+})
+
+const adminLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
+  let user
+  try {
+    user = await User.findById(payload.sub)
+  } catch (error) {
+    done(error, false)
+  }
+  if (user && user.isAdmin) {
+    done(null, user)
+  } else {
+    done(null, false)
+  }
+})
 
 // Tell passport to use this strategy
-passport.use(jwtLogin); // for 'jwt'
-passport.use(localLogin); // for 'local'
+passport.use(jwtLogin) // for 'jwt'
+passport.use(localLogin) // for 'local'
+passport.use('admin', adminLogin) // for 'admin'
 
 // middleware functions to use in routes
-export const requireAuth = passport.authenticate('jwt', { session: false });
-export const requireSignin = passport.authenticate('local', { session: false });
+const createAuthMiddleware = (strategy) => {
+  return process.env.DISCITE_ENV === 'DEVELOPMENT'
+    ? (req, res, next) => next()
+    : passport.authenticate(strategy, { session: false })
+}
+
+export const requireAuth = passport.authenticate('jwt', { session: false })
+export const requireSignin = passport.authenticate('local', { session: false })
+export const requireAdmin = createAuthMiddleware('admin')

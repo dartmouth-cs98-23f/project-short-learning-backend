@@ -1,11 +1,20 @@
 import { Router } from 'express'
-import { VideoMetadata } from '../models/video_models'
-import { Comment } from '../models/comment_model'
+import * as Video from '../controllers/video_controllers'
+import * as VideoAffinity from '../controllers/video_affinity_controller'
 import { logger } from '../services/logger'
+import { requireAdmin, requireAuth } from '../services/passport'
+const videoRouter = Router()
 
-export const videoRouter = Router()
-
-const MAX_COMMENT_LENGTH = 500
+/**
+ *
+ * GET /videos/:videoId
+ * PUT /video
+ * POST /videos/:videoId/like
+ * POST /videos/:videoId/dislike
+ * GET /videos/:videoId/comments
+ * POST /videos/:videoId/comment
+ * POST /videos/:videoId/comment/:commentId/like
+ */
 
 /**
  * GET request to get video metadata
@@ -15,112 +24,118 @@ const MAX_COMMENT_LENGTH = 500
  *
  * @returns a json object with the message and the metadata
  *
- * @errors 422 if videoId is missing
+ * @errors 200 if success
+ *         422 if videoId is missing
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.get('/video/:videoId', async (req, res) => {
+videoRouter.get('/videos/:videoId', requireAuth, async (req, res) => {
   try {
-    const videoId = req.params.videoId
-    if (!videoId) {
-      return res.status(422).json({ message: 'Missing videoId parameter' })
-    }
-
-    const metadata = await VideoMetadata.findOne({ videoId })
-    if (!metadata) {
-      return res.status(404).json({ message: 'Video not found' })
-    }
-
-    return res.status(200).json({ message: 'Video found', metadata })
+    return await Video.getVideoById(req, res)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    return res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+/**
+ * PUT request to create a new video, used by internal services and is not for user uploads
+ * - See src/models/video_models.ts for the VideoMetadata schema
+ * - See src/models/clip_models.ts for the ClipMetadata schema
+ *
+ * @headers Authorization // Admin JWT token
+ *
+ * @bodyparam title: string // the title of the video
+ * @bodyparam description: string // the description of the video
+ * @bodyparam uploader: string // the uploader of the video
+ * @bodyparam tags: string[] // the tags of the video
+ * @bodyparam duration: number // the duration of the video
+ * @bodyparam thumbnailURL: string // the thumbnailURL of the video
+ * @bodyparam clipTitles: string[] // the titles of the clips
+ * @bodyparam clipTags: string[]string[] // the tags of the clips
+ * @bodyparam clipDurations: number[] // the durations of the clips
+ * @bodyparam clipThumbnailURLs: string[] // the thumbnailURLs of the clips
+ * @bodyparam clipLinks: string[] // the links of the clips to the Manifest
+ * @bodyparam clipDescriptions: string[] // the descriptions of the clips
+ *
+ * @returns a json object with a success message
+ *
+ * @errors 200 if success
+ *         422 if any data is missing
+ *         500 if server error
+ */
+videoRouter.put('/videos', requireAdmin, async (req, res) => {
+  try {
+    return await Video.createVideo(req, res)
+  } catch (error) {
+    logger.error(error.message)
+    return res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+/**
+ * DELETE request to delete a video
+ *
+ * @headers Authorization // Admin JWT token
+ *
+ * @pathparam videoId: ObjectId // the videoId of the video to delete
+ *
+ * @returns message: string // a message indicating success or failure
+ *
+ * @errors 200 if success
+ *         422 if videoId is missing
+ *         404 if video is not found
+ *         500 if server error
+ */
+videoRouter.delete('/videos/:videoId', requireAdmin, async (req, res) => {
+  try {
+    return await Video.deleteVideo(req, res)
+  } catch (error) {
+    logger.error(error.message)
+    return res.status(500).json({ message: 'Server Error' })
   }
 })
 
 /**
  * POST request to add a like to a video
  *
- * @pathparam videoId the videoId of the video to like
- * @bodyparam userId the userId of the user liking the video
+ * @headers Authorization // the JWT token of the user liking the video
  *
- * @returns a json object with the message and the number of likes
+ * @pathparam videoId // the videoId of the video to like
+ *
+ * @returns message // a message indicating success or failure
+ *          likes // the number of likes on this video
  *
  * @errors 422 if videoId or userId is missing
  *         404 if video is not found
  *         500 if server error
  */
-videoRouter.post('/video/:videoId/like', async (req, res) => {
+videoRouter.post('/videos/:videoId/like', requireAuth, async (req, res) => {
   try {
-    const videoId = req.params.videoId
-    const userId = req.body.userId
-    console.log(videoId, userId)
-    if (!videoId) {
-      return res.status(422).json({ message: 'Missing videoId parameter' })
-    } else if (!userId) {
-      return res.status(422).json({ message: 'Missing userId parameter' })
-    }
-
-    // update "likes" field and push userId to the array if it doesn't exist
-    const metadata = await VideoMetadata.findOneAndUpdate(
-      { videoId },
-      { $addToSet: { likes: userId } },
-      { new: true }
-    )
-    if (!metadata) {
-      return res.status(404).json({ message: 'Video not found' })
-    }
-
-    return res.json({
-      message: 'Like successful',
-      likes: metadata.likes.length
-    })
+    return await Video.addLike(req, res)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    return res.status(500).json({ message: 'Server Error' })
   }
 })
 
 /**
  * POST request to add a dislike to a video
  *
- * @pathparam videoId the videoId of the video to dislike
- * @bodyparam userId the userId of the user disliking the video
+ * @headers Authorization // the JWT token of the user disliking the video
  *
- * @returns a json object with the message and the number of dislikes
+ * @pathparam videoId // the videoId of the video to dislike
  *
- * @errors 422 if videoId or userId is missing
- *         404 if video is not found
- *         500 if server error
+ * @returns message // a message indicating success or failure
+ *          dislikes // the number of dislikes on this video
+ *
+ * @errors 422 // if videoId or userId is missing
+ *         404 // if video is not found
+ *         500 // if server error
  */
-videoRouter.post('/video/:videoId/dislike', async (req, res) => {
+videoRouter.post('/videos/:videoId/dislike', requireAuth, async (req, res) => {
   try {
-    const videoId = req.params.videoId
-    const userId = req.body.userId
-    if (!videoId) {
-      return res.status(422).json({ message: 'Missing videoId parameter' })
-    } else if (!userId) {
-      return res.status(422).json({ message: 'Missing userId parameter' })
-    }
-
-    // update "dislikes" field and push userId to the array if it doesn't exist
-    const metadata = await VideoMetadata.findOneAndUpdate(
-      { videoId },
-      { $addToSet: { dislikes: userId } },
-      { new: true }
-    )
-
-    if (!metadata) {
-      return res.status(404).json({ message: 'Video not found' })
-    }
-
-    return res.json({
-      message: 'Dislike successful',
-      likes: metadata.dislikes.length
-    })
+    return await Video.addDislike(req, res)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    return res.status(500).json({ message: 'Server Error' })
   }
 })
 
@@ -128,50 +143,24 @@ videoRouter.post('/video/:videoId/dislike', async (req, res) => {
  * GET request to get all comments for a video
  * - See src/models/comment_model.ts for the comments schema
  *
+ * @headers Authorization // the JWT token of the user getting the comments
+ *
  * @pathparam videoId // the videoId of the video to get comments for
- * @bodyparam userId // the userId of the user getting the comments
  * @bodyparam limit // the number of comments to get (default 50)
  *
  * @returns message // a message indicating success or failure
- *          totalComments // the number of comments on this video
- *          comments // an array of comments
+ *          totalComments // the number of comments on this video (including nested)
+ *          comments // an array of comments, excluding nested comments (only top level comments)
  *
- * @errors 422 if videoId is missing
- *         404 if video is not found
- *         500 if server error
+ * @errors 422 // if videoId is missing
+ *         404 // if video is not found
+ *         500 // if server error
  */
-videoRouter.get('/video/:videoId/comments', async (req, res) => {
+videoRouter.get('/videos/:videoId/comments', requireAuth, async (req, res) => {
   try {
-    const videoId = req.params.videoId
-    const userId = req.body.userId
-    const limit = req.body.limit
-
-    if (!videoId) {
-      return res.status(422).json({ message: 'Missing videoId parameter' })
-    } else if (!userId) {
-      return res.status(422).json({ message: 'Missing userId parameter' })
-    }
-
-    const exists = await VideoMetadata.exists({ videoId })
-    if (!exists) {
-      return res.status(404).json({ message: 'Video not found' })
-    }
-
-    // Get total number of comments for this video from collection metadata
-    const totalComments = await Comment.estimatedDocumentCount({ videoId })
-
-    // Grab the last 50 comments or last "limit" comments
-    const comments = await Comment.find({ videoId })
-      .sort({ createdAt: -1 })
-      .limit(limit ? limit : 50)
-      .exec()
-
-    return res
-      .status(200)
-      .json({ message: 'Comments found', totalComments, comments })
+    return await Video.getComments(req, res)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    return res.status(500).json({ message: 'Server Error' })
   }
 })
 
@@ -179,67 +168,61 @@ videoRouter.get('/video/:videoId/comments', async (req, res) => {
  * POST request to add a comment to a video
  * - See src/models/comment_model.ts for the comments schema
  *
+ * @headers Authorization // the JWT token of the user adding the comment
+ *
  * @pathparam videoId // the videoId of the video to add a comment to
  * @bodyparam userId // the userId of the user adding the comment
  * @bodyparam text // the comment text to add
  * @bodyparam parentCommentId // the commentId of the parent comment if this is a reply
  *
  * @returns message // a message indicating success or failure
- *          totalComments // the number of comments on this video
+ *          totalComments // the number of comments on this video (including nested)
  *
  * @errors 422 // if videoId, userId, or text is missing
  *         404 // if video is not found
  *         500 // if server error
  */
-videoRouter.post('/video/:videoId/comment', async (req, res) => {
+videoRouter.post('/videos/:videoId/comment', requireAuth, async (req, res) => {
   try {
-    const videoId = req.params.videoId
-    const userId = req.body.userId
-    const text = req.body.text
-    const parentCommentId = req.body.parentCommentId
-
-    if (!videoId) {
-      return res.status(422).json({ message: 'Missing videoId parameter' })
-    } else if (!userId) {
-      return res.status(422).json({ message: 'Missing userId parameter' })
-    } else if (!text) {
-      return res.status(422).json({ message: 'Missing comment parameter' })
-    } else if (text.length > MAX_COMMENT_LENGTH) {
-      return res.status(422).json({ message: 'Comment too long' })
-    }
-
-    // check if video exists
-    const exists = await VideoMetadata.exists({ videoId })
-    if (!exists) {
-      return res.status(404).json({ message: 'Video not found' })
-    }
-
-    // create new comment object
-    const newComment = new Comment({
-      userId,
-      videoId,
-      text,
-      likes: [],
-      parentId: parentCommentId ? parentCommentId : null
-    })
-    await newComment.save()
-
-    // get amount of comments on this videoId
-    const totalComments = await Comment.estimatedDocumentCount({ videoId })
-
-    return res.json({
-      message: 'Comment successful',
-      totalComments
-    })
+    return await Video.addComment(req, res)
   } catch (error) {
-    logger.error(error)
     return res.status(500).json({ message: 'Server Error' })
   }
 })
 
 /**
+ * DELETE request to delete a comment from a video, including all nested comments
+ * - See src/models/comment_model.ts for the comments schema
+ *
+ * @headers Authorization // Admin JWT token
+ *
+ * @pathparam videoId // the videoId of the video to delete a comment from
+ * @pathparam commentId // the commentId of the comment to delete
+ *
+ * @returns message // a message indicating success or failure
+ *
+ * @errors 422 /s videoId or commentId is missing
+ *         404 // if video or comment is not found
+ *         500 // if server error
+ *
+ */
+videoRouter.delete(
+  '/videos/:videoId/comment/:commentId',
+  requireAdmin,
+  async (req, res) => {
+    try {
+      return await Video.deleteComment(req, res)
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error' })
+    }
+  }
+)
+
+/**
  * POST request to add a like to a comment
  * - See src/models/comment_model.ts for the comments schema
+ *
+ * @headers Authorization // the JWT token of the user liking the comment
  *
  * @pathparam videoId // the videoId of the video to add a comment to
  * @pathparam commentId // the commentId of the comment to like
@@ -253,44 +236,113 @@ videoRouter.post('/video/:videoId/comment', async (req, res) => {
  *         500 // if server error
  */
 videoRouter.post(
-  '/video/:videoId/comment/:commentId/like',
+  '/videos/:videoId/comment/:commentId/like',
+  requireAuth,
   async (req, res) => {
     try {
-      const videoId = req.params.videoId
-      const commentId = req.params.commentId
-      const userId = req.body.userId
-
-      if (!videoId) {
-        return res.status(422).json({ message: 'Missing videoId parameter' })
-      } else if (!commentId) {
-        return res.status(422).json({ message: 'Missing commentId parameter' })
-      } else if (!userId) {
-        return res.status(422).json({ message: 'Missing userId parameter' })
-      }
-
-      // check if video exists
-      const exists = await VideoMetadata.exists({ videoId })
-      if (!exists) {
-        return res.status(404).json({ message: 'Video not found' })
-      }
-
-      // update "likes" field and push userId to the array if it doesn't exist
-      const comment = await Comment.findOneAndUpdate(
-        { _id: commentId },
-        { $addToSet: { likes: userId } },
-        { new: true }
-      )
-      if (!comment) {
-        return res.status(404).json({ message: 'Comment not found' })
-      }
-
-      return res.json({
-        message: 'Like successful',
-        totalLikes: comment.likes.length
-      })
+      return await Video.addLikeToComment(req, res)
     } catch (error) {
-      logger.error(error)
-      return res.status(500).json({ message: 'Server Error' })
+      return res.status(422).json({ message: error.toString() })
     }
   }
 )
+
+/**
+ * GET request to get video affinities
+ * - See src/models/video_affinity_model.ts for the VideoAffinity schema
+ *
+ * @pathparam videoId // the videoId of the video to get affinity for
+ *
+ * @returns videoAffinity // the video affinity of the video
+ *
+ * @errors 422 // if videoId is missing
+ *         404 // if video is not found
+ *         500 // if server error
+ */
+videoRouter.get('/videos/:videoId/affinities', async (req, res) => {
+  try {
+    const videoAffinity = await VideoAffinity.getVideoAffinities(
+      req.params.videoId
+    )
+    return res.json(videoAffinity)
+  } catch (error) {
+    return res.status(422).json({ message: error.toString() })
+  }
+})
+
+/**
+ * POST request to create video affinities
+ * - See src/models/video_affinity_model.ts for the VideoAffinity schema
+ *
+ * @pathparam videoId // the videoId of the video to update affinity for
+ * @bodyparam affinities // the affinities to update
+ *
+ * @returns videoAffinity // the updated video affinity of the video
+ *
+ * @errors 422 // if videoId or affinities is missing
+ *         404 // if video is not found
+ *         500 // if server error
+ */
+videoRouter.post('/videos/:videoId/affinities', async (req, res) => {
+  try {
+    const videoAffinity = await VideoAffinity.createVideoAffinity(
+      req.params.videoId,
+      req.body
+    )
+    return res.json(videoAffinity)
+  } catch (error) {
+    return res.status(422).json({ message: error.toString() })
+  }
+})
+
+/**
+ * PUT request to update video affinities
+ * - See src/models/video_affinity_model.ts for the VideoAffinity schema
+ *
+ * @pathparam videoId // the videoId of the video to update affinity for
+ * @bodyparam affinities // the affinities to update
+ *
+ * @returns videoAffinity // the updated video affinity of the video
+ *
+ * @errors 422 // if videoId or affinities is missing
+ *         404 // if video is not found
+ *         500 // if server error
+ */
+
+videoRouter.put('/videos/:videoId/affinities', async (req, res) => {
+  try {
+    const videoAffinity = await VideoAffinity.updateVideoAffinities(
+      req.params.videoId,
+      req.body
+    )
+    return res.json(videoAffinity)
+  } catch (error) {
+    return res.status(422).json({ message: error.toString() })
+  }
+})
+
+/**
+ * DELETE request to delete video affinities
+ * - See src/models/video_affinity_model.ts for the VideoAffinity schema
+ *
+ * @pathparam videoId // the videoId of the video to delete a comment from
+ *
+ * @returns message // a message indicating success or failure
+ *
+ * @errors 422 // if videoId or commentId is missing
+ *         404 // if video or comment is not found
+ *         500 // if server error
+ *
+ */
+videoRouter.delete('/videos/:videoId/affinities', async (req, res) => {
+  try {
+    const success = await VideoAffinity.deleteVideoAffinities(
+      req.params.videoId
+    )
+    return res.json({ success })
+  } catch (error) {
+    return res.status(422).json({ message: error.toString() })
+  }
+})
+
+export default videoRouter
