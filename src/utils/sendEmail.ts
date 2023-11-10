@@ -1,29 +1,23 @@
-import { createTransporter } from './createTransporter'
-import mjml2html from 'mjml'
+const brevo = require('@getbrevo/brevo');
 
 export const sendEmail = async (user) => {
-  const transporter = createTransporter()
-  const content = mjml2html(`
-      <mjml>
-        <mj-body>
-          <mj-section>
-            <mj-column>
+  let defaultClient = brevo.ApiClient.instance;
+  let apiKey = defaultClient.authentications['api-key'];
+  apiKey.apiKey = process.env.BREVO_API_KEY;
 
-              <mj-image width="100px" src="https://i.imgur.com/xWwmcoV.png"></mj-image>
-              <mj-divider border-color="#00008B"></mj-divider>
+  let apiInstance = new brevo.TransactionalEmailsApi();
+  let sendSmtpEmail = new brevo.SendSmtpEmail();
 
-              <mj-text font-size="12px" color="black" font-family="helvetica">Hi ${user.firstName}, your accont verification code is: <b>${user.emailVerificationCode}</b></mj-text>
+  sendSmtpEmail.templateId = 1;
+  sendSmtpEmail.to = [
+    { "email": user.email }
+  ];
+  sendSmtpEmail.params = { "name": user.firstName, "code": user.emailVerificationCode, "time": new Date() };
 
-            </mj-column>
-          </mj-section>
-        </mj-body>
-      </mjml>
-    `)
 
-  const info = await transporter.sendMail({
-    from: '"No Reply" <no-reply-short-form-learning@outlook.com>',
-    to: user.email,
-    subject: 'Short Form Learning - Verify your email',
-    html: content.html
-  })
+  apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
+    console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+  }, function (error) {
+    console.error(error);
+  });
 }
