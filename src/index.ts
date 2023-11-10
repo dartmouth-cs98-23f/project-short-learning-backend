@@ -6,6 +6,7 @@ import userAffinityRoutes from './routes/user_affinity_routes'
 import relationshipRoutes from './routes/relationship_routes'
 import videoRouter from './routes/video_routes'
 import videoAffinityRouter from './routes/video_affinity_routes'
+import recommendationRouter from './routes/recommendation_routes'
 import mongoose from 'mongoose'
 import { logger, requestLogger, responseLogger } from './services/logger'
 
@@ -24,8 +25,8 @@ app.use(responseLogger)
 
 async function runApp() {
   try {
-    const mongoURI =
-      process.env.MONGODB_URI
+    const mongoURI = process.env.MONGODB_URI
+    console.log(`Connecting to ${mongoURI}`)
     await mongoose.connect(mongoURI)
     await app.listen(port)
     console.log(`Server listening at http://localhost:${port}`)
@@ -40,5 +41,6 @@ app.use('/api', userAffinityRoutes)
 app.use('/api', relationshipRoutes)
 app.use('/api', videoRouter)
 app.use('/api', videoAffinityRouter)
+app.use('/api', recommendationRouter)
 
 runApp()

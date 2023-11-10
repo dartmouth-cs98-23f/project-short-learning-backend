@@ -89,6 +89,6 @@ const createAuthMiddleware = (strategy) => {
     : passport.authenticate(strategy, { session: false })
 }
 
-export const requireAuth = createAuthMiddleware('jwt')
-export const requireSignin = createAuthMiddleware('local')
+export const requireAuth = passport.authenticate('jwt', { session: false })
+export const requireSignin = passport.authenticate('local', { session: false })
 export const requireAdmin = createAuthMiddleware('admin')
