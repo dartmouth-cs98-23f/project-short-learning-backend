@@ -6,10 +6,9 @@ describe('Precomputed Recommendations', () => {
   var videoIds = []
   var clips = []
   var topicIds = []
-  var combinedTopicNames = [
-    "Science/Biology",
-    "Science2/Biology2"
-  ]
+  var topicNames = []
+  var subTopicNames = []
+  var combinedTopicNames = ['Science/Biology', 'Science2/Biology2']
   var userId = ''
   var token = ''
 
@@ -119,78 +118,82 @@ describe('Precomputed Recommendations', () => {
         combinedTopicName: combinedTopicNames[1]
       }
     })
-
   })
-  
+
   it('Creating a new topics for recommendations, test if GET works for both ID and name', () => {
-    var topicName = combinedTopicNames[0].split('/')[0]
-    var subTopicName = combinedTopicNames[0].split('/')[1]
-    var topicName2 = combinedTopicNames[1].split('/')[0]
-    var subTopicName2 = combinedTopicNames[1].split('/')[1]
+    topicNames.push(combinedTopicNames[0].split('/')[0])
+    subTopicNames.push(combinedTopicNames[0].split('/')[1])
+    topicNames.push(combinedTopicNames[1].split('/')[0])
+    subTopicNames.push(combinedTopicNames[1].split('/')[1])
 
     cy.request({
       method: 'POST',
       url: `${URL}/topics`,
       body: {
-        "topicName": `${topicName}`,
-        "subTopicName": `${subTopicName}`,
-        "description": "The study of living organisms, divided into many specialized fields that cover their morphology, physiology, anatomy, behavior, origin, and distribution.",
-        "thumbnailURL": "https://example.com/thumbnails/biology.png"
+        topicName: `${topicNames[0]}`,
+        subTopicName: `${subTopicNames[0]}`,
+        description:
+          'The study of living organisms, divided into many specialized fields that cover their morphology, physiology, anatomy, behavior, origin, and distribution.',
+        thumbnailURL: 'https://example.com/thumbnails/biology.png'
       }
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-      topicIds.push(response.body.topic._id)
-    }).then(() => {
-      cy.request({
-        method: 'GET',
-        url: `${URL}/topics?combinedTopicName=${combinedTopicNames[0]}`,
-        headers: {
-          Authorization: token
-        }
-      }).then((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.topic.topicName).to.eq(`${topicName}`)
-        expect(response.body.topic.subTopicName).to.eq(`${subTopicName}`)
-        expect(response.body.topic.description).to.eq(
-          'The study of living organisms, divided into many specialized fields that cover their morphology, physiology, anatomy, behavior, origin, and distribution.'
-        )
-        expect(response.body.topic.thumbnailURL).to.eq(
-          'https://example.com/thumbnails/biology.png'
-        )
-      })
     })
+      .then((response) => {
+        expect(response.status).to.eq(200)
+        topicIds.push(response.body.topic._id)
+      })
+      .then(() => {
+        cy.request({
+          method: 'GET',
+          url: `${URL}/topics?combinedTopicName=${combinedTopicNames[0]}`,
+          headers: {
+            Authorization: token
+          }
+        }).then((response) => {
+          expect(response.status).to.eq(200)
+          expect(response.body.topic.topicName).to.eq(`${topicNames[0]}`)
+          expect(response.body.topic.subTopicName).to.eq(`${subTopicNames[0]}`)
+          expect(response.body.topic.description).to.eq(
+            'The study of living organisms, divided into many specialized fields that cover their morphology, physiology, anatomy, behavior, origin, and distribution.'
+          )
+          expect(response.body.topic.thumbnailURL).to.eq(
+            'https://example.com/thumbnails/biology.png'
+          )
+        })
+      })
 
     cy.request({
       method: 'POST',
       url: `${URL}/topics`,
       body: {
-        "topicName": `${topicName2}`,
-        "subTopicName": `${subTopicName2}`,
-        "description": "The study of living organisms",
-        "thumbnailURL": "https://example.com/thumbnails/biology2.png"
+        topicName: `${topicNames[1]}`,
+        subTopicName: `${subTopicNames[1]}`,
+        description: 'The study of living organisms',
+        thumbnailURL: 'https://example.com/thumbnails/biology2.png'
       }
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-      topicIds.push(response.body.topic._id)
-    }).then(() => {
-      cy.request({
-        method: 'GET',
-        url: `${URL}/topics?topicId=${topicIds[1]}`,
-        headers: {
-          Authorization: token
-        }
-      }).then((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.topic.topicName).to.eq(`${topicName2}`)
-        expect(response.body.topic.subTopicName).to.eq(`${subTopicName2}`)
-        expect(response.body.topic.description).to.eq(
-          'The study of living organisms'
-        )
-        expect(response.body.topic.thumbnailURL).to.eq(
-          'https://example.com/thumbnails/biology2.png'
-        )
-      })
     })
+      .then((response) => {
+        expect(response.status).to.eq(200)
+        topicIds.push(response.body.topic._id)
+      })
+      .then(() => {
+        cy.request({
+          method: 'GET',
+          url: `${URL}/topics?topicId=${topicIds[1]}`,
+          headers: {
+            Authorization: token
+          }
+        }).then((response) => {
+          expect(response.status).to.eq(200)
+          expect(response.body.topic.topicName).to.eq(`${topicNames[1]}`)
+          expect(response.body.topic.subTopicName).to.eq(`${subTopicNames[1]}`)
+          expect(response.body.topic.description).to.eq(
+            'The study of living organisms'
+          )
+          expect(response.body.topic.thumbnailURL).to.eq(
+            'https://example.com/thumbnails/biology2.png'
+          )
+        })
+      })
   })
 
   it('Deleting recommendations if they exist', () => {
@@ -213,22 +216,31 @@ describe('Precomputed Recommendations', () => {
         combinedTopicName: combinedTopicNames[0],
         recommendations: videoIds
       }
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-    }).then(() => {
-      cy.request({
-        method: 'GET',
-        url: `${URL}/recommendations/precomputed?userId=${userId}`,
-        headers: {
-          Authorization: token
-        }
-      }).then((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.recommendation.topicSequences[combinedTopicNames[0]][0]).to.eq(videoIds[0])
-        expect(response.body.recommendation.topicSequences[combinedTopicNames[0]][1]).to.eq(videoIds[1])
-        
-      })
     })
+      .then((response) => {
+        expect(response.status).to.eq(200)
+      })
+      .then(() => {
+        cy.request({
+          method: 'GET',
+          url: `${URL}/recommendations/precomputed?userId=${userId}`,
+          headers: {
+            Authorization: token
+          }
+        }).then((response) => {
+          expect(response.status).to.eq(200)
+          expect(
+            response.body.recommendation.topicSequences[
+              combinedTopicNames[0]
+            ][0]
+          ).to.eq(videoIds[0])
+          expect(
+            response.body.recommendation.topicSequences[
+              combinedTopicNames[0]
+            ][1]
+          ).to.eq(videoIds[1])
+        })
+      })
 
     cy.request({
       method: 'PUT',
@@ -238,21 +250,26 @@ describe('Precomputed Recommendations', () => {
         combinedTopicName: combinedTopicNames[1],
         recommendations: [videoIds[1]]
       }
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-    }
-    ).then(() => {
-      cy.request({
-        method: 'GET',
-        url: `${URL}/recommendations/precomputed?userId=${userId}`,
-        headers: {
-          Authorization: token
-        }
-      }).then((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.recommendation.topicSequences[combinedTopicNames[1]][0]).to.eq(videoIds[1])
-      })
     })
+      .then((response) => {
+        expect(response.status).to.eq(200)
+      })
+      .then(() => {
+        cy.request({
+          method: 'GET',
+          url: `${URL}/recommendations/precomputed?userId=${userId}`,
+          headers: {
+            Authorization: token
+          }
+        }).then((response) => {
+          expect(response.status).to.eq(200)
+          expect(
+            response.body.recommendation.topicSequences[
+              combinedTopicNames[1]
+            ][0]
+          ).to.eq(videoIds[1])
+        })
+      })
   })
 
   it('Gets playlist recommendations for a topic by name', () => {
@@ -292,7 +309,9 @@ describe('Precomputed Recommendations', () => {
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
-      expect(response.body.message).to.eq('Success, but could not find all playlists or too many queried')
+      expect(response.body.message).to.eq(
+        'Success, but could not find all playlists or too many queried'
+      )
       expect(response.body.playlists[0]._id).to.eq(videoIds[0])
       expect(response.body.playlists[1]._id).to.eq(videoIds[1])
     })
@@ -308,7 +327,10 @@ describe('Precomputed Recommendations', () => {
     }).then((response) => {
       expect(response.status).to.eq(200)
       cy.task('log', response.body)
+      expect(response.body.topics[0].topicName).to.eq(topicNames[0])
+      expect(response.body.topics[0].subTopicName).to.eq(subTopicNames[0])
+      expect(response.body.topics[1].topicName).to.eq(topicNames[1])
+      expect(response.body.topics[1].subTopicName).to.eq(subTopicNames[1])
     })
   })
-
 })

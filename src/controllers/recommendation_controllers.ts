@@ -14,7 +14,11 @@ import {
   validateSequence,
   validateUser
 } from '../utils/param_validators'
-import { GetTopicsResponse } from '../models/topic_models'
+import {
+  GetTopicsResponse,
+  TopicMetadata,
+  TopicMetadataDocument
+} from '../models/topic_models'
 
 export const getPrecomputedRecommendationDocument = async (
   req: Request<{}, {}, {}, GetPrecomputedQueryParams>,
@@ -199,8 +203,10 @@ export const getPlaylistRecommendation = async (
   })
 }
 
-// BROKEN
-export const getTopicsRecommendation = async (req: Request, res: Response<GetTopicsResponse>) => {
+export const getTopicsRecommendation = async (
+  req: Request,
+  res: Response<GetTopicsResponse>
+) => {
   try {
     const userId = req.user
 
@@ -214,36 +220,33 @@ export const getTopicsRecommendation = async (req: Request, res: Response<GetTop
       return res.status(404).json({ message: 'Recommendations not found' })
     }
 
-    const topicSequences: Map<string, mongoose.Types.ObjectId[]> = precomputedRecommendationsDocument.topicSequences
+    const topicSequences: Map<string, mongoose.Types.ObjectId[]> =
+      precomputedRecommendationsDocument.topicSequences
+    const topics = []
 
-
+    const it = topicSequences.keys()
     // TEMP: max 10 topics
     for (var i = 0; i < 10; i++) {
-      const combinedTopicName = topicSequences.keys().next().value
-      const topicName = combinedTopicName.split('/')[0]
-      const subTopicName = combinedTopicName.split('/')[1]
-      const playlistIds = topicSequences.get(topicName)
-      const playlist: VideoMetadataDocument = await VideoMetadata.findById(
-        playlistIds[0]
-      )
-        .populate('clips')
-        .exec()
-      if (!playlist) {
-        logger.warn(`No playlist found playlistID: ${playlistIds[0]}`)
-      } else {
-        logger.debug(`found ${playlist.title}`)
-        recommendations.push({
-          topicName: topicName,
-          subTopicName: subTopicName,
-          sequence: playlist
-        })
-      }
-    }
+      const topicName = it.next().value
 
+      if (topicName === undefined) {
+        break
+      }
+
+      const topicMetadata: TopicMetadataDocument = await TopicMetadata.findOne({
+        combinedTopicName: topicName
+      })
+      if (!topicMetadata) {
+        logger.warn(
+          `No topic found for user: ' + ${userId}, topic: ${topicName}`
+        )
+      }
+      topics.push(topicMetadata)
+    }
 
     return res.status(200).json({
       message: 'Success',
-      recommendations
+      topics
     })
   } catch (error) {
     logger.error(`Something failed: ${error}`)

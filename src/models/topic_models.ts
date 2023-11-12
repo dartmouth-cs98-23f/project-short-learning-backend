@@ -15,7 +15,7 @@ const topicMetadataSchema = new Schema<TopicMetadataDocument>(
     subTopicName: { type: String, required: false },
     description: { type: String, required: true },
     thumbnailURL: { type: String, required: false },
-    combinedTopicName: { type: String, required: true },
+    combinedTopicName: { type: String, required: true }
   },
   { timestamps: true, collection: 'topic_metadata' }
 )
@@ -36,9 +36,5 @@ export interface UpdateTopicBodyParams {
 
 export interface GetTopicsResponse {
   message: string
-  recommendations?: {
-    topicName: string
-    subTopicName?: string
-    sequence: VideoMetadataDocument[]
-  }
+  topics?: TopicMetadataDocument[]
 }
