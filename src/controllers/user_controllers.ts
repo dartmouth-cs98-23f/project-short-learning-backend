@@ -2,7 +2,6 @@ import jwt from 'jwt-simple'
 import User, { UserDocument } from '../models/user_model'
 import UserAffinity from '../models/user_affinity_model'
 import { sendEmail } from '../utils/sendEmail'
-import { Recommendation } from '../models/recommendation_models'
 import UserModel from '../models/user_model'
 import { logger } from '../services/logger'
 
@@ -154,16 +153,6 @@ export const verifyUser = async (user, { emailVerificationCode }) => {
       throw new Error('Invalid verification token')
     }
   } catch (error) {
-    throw new Error(error)
-  }
-}
-
-export const updateUserSequence = async (userId: string, sequence: Recommendation[]) => { 
-  try {
-    const user: UserDocument = await UserModel.findByIdAndUpdate(userId, { currentSequence: sequence })
-    return user
-  } catch (error) {
-    logger.error(error)
     throw new Error(error)
   }
 }
