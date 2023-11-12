@@ -1,98 +1,101 @@
 import { Request, Response } from 'express'
 import {
-  GetNewRecommendationBodyParams,
+  GetPlaylistQueryParams,
+  GetPrecomputedQueryParams,
   PrecomputedRecommendations,
   PrecomputedRecommendationsDocument,
-  Recommendation
+  UpdatePrecomputedBodyParams
 } from '../models/recommendation_models'
 import { logger } from '../services/logger'
-import { validatePrecomputedRecommendations } from '../utils/endpoints/param_validator'
 import { VideoMetadata, VideoMetadataDocument } from '../models/video_models'
+import mongoose from 'mongoose'
+import {
+  validateCombinedTopicName,
+  validateSequence,
+  validateUser
+} from '../utils/param_validators'
+import {
+  GetTopicsResponse,
+  TopicMetadata,
+  TopicMetadataDocument
+} from '../models/topic_models'
 
-export const getPrecomputedRecommendations = async (
-  req: Request<{}, {}, PrecomputedRecommendationsDocument>,
+export const getPrecomputedRecommendationDocument = async (
+  req: Request<{}, {}, {}, GetPrecomputedQueryParams>,
   res: Response
 ) => {
-  const userId = req.user
-  if (!userId) {
-    return res.status(422).json({ message: 'Missing userId' })
-  }
+  const userId = req.query.userId
 
-  const recommendations = await PrecomputedRecommendations.findOne({
+  const recommendationMetadata = await PrecomputedRecommendations.findOne({
     userId: userId
   })
 
-  if (!recommendations) {
+  if (!recommendationMetadata) {
     return res.status(404).json({ message: 'Recommendations not found' })
   }
 
   logger.debug(`Found recommendations for user: ' + ${userId}`)
+  logger.debug(recommendationMetadata)
 
   return res
     .status(200)
-    .json({ message: 'Success', recommendations: recommendations })
+    .json({ message: 'Success', recommendation: recommendationMetadata })
 }
 
-export const updatePrecomputedRecommendations = async (
-  req: Request<{}, {}, PrecomputedRecommendationsDocument>,
+// Validate userId, combinedTopicName, and recommendations in middleware
+export const updatePrecomputedRecommendation = async (
+  req: Request<{}, {}, UpdatePrecomputedBodyParams>,
   res: Response
 ) => {
-  const precomputedRecommendationsBodyParams: PrecomputedRecommendationsDocument =
-    req.body
+  try {
+    const userId = req.body.userId as any as mongoose.Types.ObjectId
+    const combinedTopicName = req.body.combinedTopicName
+    const recommendations = req.body
+      .recommendations as any as mongoose.Types.ObjectId[]
 
-  const userId = precomputedRecommendationsBodyParams.userId
-  const topTopicVideoRecommendations =
-    precomputedRecommendationsBodyParams.topTopicVideoRecommendations
-  const topVideoRecommendations =
-    precomputedRecommendationsBodyParams.topVideoRecommendations
+    if (!(await validateUser(userId))) {
+      return res.status(422).json({ message: 'Invalid userId' })
+    } else if (!(await validateCombinedTopicName(combinedTopicName))) {
+      logger.debug(`Invalid combinedTopicName: ${combinedTopicName}`)
+      return res.status(422).json({ message: 'Invalid combinedTopicName' })
+    } else if (!(await validateSequence(recommendations))) {
+      return res.status(422).json({ message: 'Invalid recommendations' })
+    }
 
-  if (!userId) {
-    return res.status(422).json({ message: 'Missing { userId }' })
-  }
-
-  const isValid = await validatePrecomputedRecommendations(
-    precomputedRecommendationsBodyParams
-  )
-  if (!isValid) {
-    return res.status(422).json({
-      message: 'Invalid recommendations, check the { recommendation_models.ts }'
+    const exists = await PrecomputedRecommendations.findOne({
+      userId
     })
-  }
 
-  const recommendations = await PrecomputedRecommendations.findOneAndUpdate(
-    { userId: userId },
-    {
-      topTopicVideoRecommendations: topTopicVideoRecommendations,
-      topVideoRecommendations: topVideoRecommendations
-    },
-    { upsert: true, new: true, includeResultMetadata: true }
-  )
+    // Create new document if it doesn't exist
+    if (!exists) {
+      logger.debug(
+        `Creating new precomputed recommendations for user: ' + ${userId}`
+      )
+      const newPrecomputedRecommendations =
+        await PrecomputedRecommendations.create({
+          userId: userId,
+          topicSequences: new Map()
+        })
+    }
 
-  if (!recommendations) {
-    return res.status(404).json({ message: 'Update failed' })
-  }
-
-  if (recommendations.lastErrorObject.updatedExisting) {
-    logger.debug(`Updated recommendations for user: ' + ${userId}`)
-    return res.status(200).json({
-      message: 'Updated precomputed recommendations',
-      recommendations: recommendations
+    const recommendationMetadata = await PrecomputedRecommendations.findOne({
+      userId
     })
-  }
 
-  if (recommendations.lastErrorObject.updatedExisting === false) {
-    logger.debug(`Created recommendations for user: ' + ${userId}`)
-    return res.status(200).json({
-      message: 'Created precomputed recommendations',
-      recommendations: recommendations
-    })
-  }
+    recommendationMetadata.topicSequences.set(
+      combinedTopicName,
+      recommendations
+    )
+    await recommendationMetadata.save()
 
-  logger.warn('Unexpected metadata object from findOneAndUpdate')
-  return res.status(200).json({
-    message: 'Success, but something weird happened',
-    recommendations: recommendations
-  })
+    logger.debug(recommendationMetadata)
+    return res
+      .status(200)
+      .json({ message: 'Success', metadata: recommendationMetadata })
+  } catch (err) {
+    logger.error(`Something failed: ${err}`)
+    return res.status(500).json({ message: 'Server Error' })
+  }
 }
 
 export const deletePrecomputedRecommendations = async (
@@ -105,11 +108,12 @@ export const deletePrecomputedRecommendations = async (
     return res.status(422).json({ message: 'Missing { userId }' })
   }
 
-  const recommendations = await PrecomputedRecommendations.findOneAndDelete({
-    userId: userId
-  })
+  const recommendationMetadata =
+    await PrecomputedRecommendations.findOneAndDelete({
+      userId: userId
+    })
 
-  if (!recommendations) {
+  if (!recommendationMetadata) {
     return res
       .status(404)
       .json({ message: 'Precomputed recommendations not found' })
@@ -122,49 +126,130 @@ export const deletePrecomputedRecommendations = async (
     .json({ message: 'Success, precomputed recommendations deleted' })
 }
 
-export const getNewPrecomputedPlaylistRecommendation = async (
-  req: Request<{}, {}, GetNewRecommendationBodyParams>,
+export const getPlaylistRecommendation = async (
+  req: Request<{}, {}, {}, GetPlaylistQueryParams>,
   res: Response
 ) => {
-  const userId = req.user._id
+  const userId = req.user
+  const combinedTopicName = req.query.combinedTopicName
+  const topicId = req.query.topicId
 
-  logger.debug(`Getting new playlist for user: ' + ${userId}`)
+  if (!topicId && !combinedTopicName) {
+    return res
+      .status(422)
+      .json({ message: 'Missing { topicId } or { combinedTopicName' })
+  }
+  const numPlaylists =
+    req.query.numPlaylists > 10 ? 10 : req.query.numPlaylists || 1
 
-  const recommendations = await PrecomputedRecommendations.findOne({
-    userId: userId
-  })
+  logger.debug(
+    `Getting new playlist for user: ' + ${userId}, topic: ${combinedTopicName}, numPlaylists: ${numPlaylists}`
+  )
 
-  if (!recommendations) {
+  const precomputedRecommendationsDocument: PrecomputedRecommendationsDocument =
+    await PrecomputedRecommendations.findOne({
+      userId: userId
+    })
+
+  if (!precomputedRecommendationsDocument) {
+    logger.warn(`No precomputed document for user: ' + ${userId}`)
     return res.status(404).json({ message: 'Recommendations not found' })
   }
 
-  logger.debug(`Found recommendations for user: ' + ${userId}`)
+  const recommendationObject =
+    precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
 
-  const newPlaylistRecommendation: Recommendation =
-    recommendations.topVideoRecommendations.pop()
-
-  if (!newPlaylistRecommendation) {
-    return res.status(404).json({ message: 'No more recommendations' })
+  if (!recommendationObject) {
+    logger.warn(
+      `No topic found for user: ' + ${userId}, topic: ${combinedTopicName}`
+    )
+    return res.status(404).json({ message: 'Recommendations not found' })
   }
 
-  logger.debug(`Found new playlist for user: ' + ${userId}`)
-
-  await recommendations.save()
-
-  const newPlaylist: VideoMetadataDocument = await VideoMetadata.findById(
-    newPlaylistRecommendation.videoId
+  logger.debug(
+    `Found recommendations for user: ' + ${userId}, topic: ${combinedTopicName}`
   )
-    .populate('clips')
-    .exec()
 
-  if (!newPlaylist) {
-    return res.status(404).json({ message: 'New playlist not found' })
+  const playlistIds = recommendationObject.splice(0, numPlaylists)
+
+  const sequence = []
+  logger.debug(`playlistIds: ${playlistIds}`)
+
+  for (var i = 0, len = playlistIds.length; i < len; i++) {
+    const playlist: VideoMetadataDocument = await VideoMetadata.findById(
+      playlistIds[i]
+    )
+      .populate('clips')
+      .exec()
+    if (!playlist) {
+      logger.warn(`No playlist found playlistID: ${playlistIds[i]}`)
+    } else {
+      logger.debug(`found ${playlist.title}`)
+      sequence.push(playlist)
+    }
   }
 
-  logger.debug(`Found new playlist for user: ' + ${userId}`)
+  logger.debug(`sequence: ${sequence.length}, numPlaylists: ${numPlaylists}`)
+  if (sequence.length != numPlaylists) {
+    return res.status(200).json({
+      message: 'Success, but could not find all playlists or too many queried',
+      playlists: sequence
+    })
+  }
 
   return res.status(200).json({
     message: 'Success',
-    newPlaylist: newPlaylist
+    playlists: sequence
   })
+}
+
+export const getTopicsRecommendation = async (
+  req: Request,
+  res: Response<GetTopicsResponse>
+) => {
+  try {
+    const userId = req.user
+
+    const precomputedRecommendationsDocument: PrecomputedRecommendationsDocument =
+      await PrecomputedRecommendations.findOne({
+        userId: userId
+      })
+
+    if (!precomputedRecommendationsDocument) {
+      logger.warn(`No precomputed document for user: ' + ${userId}`)
+      return res.status(404).json({ message: 'Recommendations not found' })
+    }
+
+    const topicSequences: Map<string, mongoose.Types.ObjectId[]> =
+      precomputedRecommendationsDocument.topicSequences
+    const topics = []
+
+    const it = topicSequences.keys()
+    // TEMP: max 10 topics
+    for (var i = 0; i < 10; i++) {
+      const topicName = it.next().value
+
+      if (topicName === undefined) {
+        break
+      }
+
+      const topicMetadata: TopicMetadataDocument = await TopicMetadata.findOne({
+        combinedTopicName: topicName
+      })
+      if (!topicMetadata) {
+        logger.warn(
+          `No topic found for user: ' + ${userId}, topic: ${topicName}`
+        )
+      }
+      topics.push(topicMetadata)
+    }
+
+    return res.status(200).json({
+      message: 'Success',
+      topics
+    })
+  } catch (error) {
+    logger.error(`Something failed: ${error}`)
+    return res.status(500).json({ message: 'Server Error' })
+  }
 }

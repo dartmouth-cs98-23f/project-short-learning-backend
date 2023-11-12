@@ -1,14 +1,17 @@
-import { Request, Router } from 'express'
+import { Request, Response, Router } from 'express'
 import {
-  GetNewRecommendationBodyParams,
-  PrecomputedRecommendationsDocument
+  GetPlaylistQueryParams,
+  GetPrecomputedQueryParams,
+  PrecomputedRecommendationsDocument,
+  UpdatePrecomputedBodyParams
 } from '../models/recommendation_models'
 import { requireAdmin, requireAuth } from '../services/passport'
 import {
   deletePrecomputedRecommendations,
-  getNewPrecomputedPlaylistRecommendation,
-  getPrecomputedRecommendations,
-  updatePrecomputedRecommendations
+  getPlaylistRecommendation,
+  getPrecomputedRecommendationDocument,
+  getTopicsRecommendation,
+  updatePrecomputedRecommendation
 } from '../controllers/recommendation_controllers'
 const recommendationRouter = Router()
 
@@ -28,9 +31,9 @@ const recommendationRouter = Router()
 recommendationRouter.get(
   '/recommendations/precomputed',
   requireAuth,
-  async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
+  async (req: Request<{}, {}, {}, GetPrecomputedQueryParams>, res: Response) => {
     try {
-      getPrecomputedRecommendations(req, res)
+      getPrecomputedRecommendationDocument(req, res)
     } catch (error) {
       return res.status(500).json({ message: 'Server Error' })
     }
@@ -55,9 +58,9 @@ recommendationRouter.get(
 recommendationRouter.put(
   '/recommendations/precomputed',
   requireAdmin,
-  async (req: Request<{}, {}, PrecomputedRecommendationsDocument>, res) => {
+  async (req: Request<{}, {}, UpdatePrecomputedBodyParams>, res) => {
     try {
-      updatePrecomputedRecommendations(req, res)
+      updatePrecomputedRecommendation(req, res)
     } catch (error) {
       return res.status(500).json({ message: 'Server Error' })
     }
@@ -87,12 +90,39 @@ recommendationRouter.delete(
   }
 )
 
-recommendationRouter.post(
-  '/recommendations/newplaylist',
+/**
+ * GET request to get a playlist(s) for a topic
+ * 
+ * @optionalqueryparam combinedTopicName: string // the combined topic name to get a playlist for
+ * @optionalqueryparam topicId: number // the number of playlists to get
+ * @optionalqueryparam numPlaylists: number // the number of playlists to get
+ */
+
+recommendationRouter.get(
+  '/recommendations/playlist',
   requireAuth,
-  async (req: Request<{}, {}, GetNewRecommendationBodyParams>, res) => {
+  async (req: Request<{}, {}, {}, GetPlaylistQueryParams>, res: Response) => {
     try {
-      getNewPrecomputedPlaylistRecommendation(req, res)
+      getPlaylistRecommendation(req, res)
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error' })
+    }
+  }
+)
+
+/**
+ * GET request to get a list of topic recommendations
+ * 
+ * @returns message // a message indicating success or failure
+ *          topics: TopicMetadataDocument[] // the topics
+ */
+
+recommendationRouter.get(
+  '/recommendations/topics',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      getTopicsRecommendation(req, res)
     } catch (error) {
       return res.status(500).json({ message: 'Server Error' })
     }

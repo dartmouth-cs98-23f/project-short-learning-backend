@@ -1,6 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose'
-import { arrayLimit } from '../utils/schema_validators'
-import { Recommendation, recommendationSchema } from './recommendation_models'
 var bcrypt = require('bcryptjs')
 
 export interface UserDocument extends Document {
@@ -16,7 +14,6 @@ export interface UserDocument extends Document {
   onBoardingStatus: string
   emailVerificationCode: number
   isAdmin: boolean
-  currentSequence: Recommendation[]
   comparePassword(candidatePassword: string): Promise<boolean>
 }
 
@@ -34,14 +31,6 @@ const UserSchema = new Schema<UserDocument>(
     onBoardingStatus: String,
     emailVerificationCode: { type: Number, select: false },
     isAdmin: { type: Boolean, default: false },
-    currentSequence: {
-      type: [recommendationSchema],
-      required: true,
-      validate: {
-        validator: arrayLimit(10),
-        message: 'CurrentVideos array must have at most 10 elements'
-      }
-    }
   },
   {
     toObject: { virtuals: true },

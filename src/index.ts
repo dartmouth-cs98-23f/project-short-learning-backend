@@ -9,6 +9,7 @@ import videoAffinityRouter from './routes/video_affinity_routes'
 import recommendationRouter from './routes/recommendation_routes'
 import mongoose from 'mongoose'
 import { logger, requestLogger, responseLogger } from './services/logger'
+import topicRouter from './routes/topics_routes'
 
 const app = express()
 const port: Number = 3000
@@ -41,5 +42,6 @@ app.use('/api', relationshipRoutes)
 app.use('/api', videoRouter)
 app.use('/api', videoAffinityRouter)
 app.use('/api', recommendationRouter)
+app.use('/api', topicRouter)
 
 runApp()

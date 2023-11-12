@@ -26,7 +26,7 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
     topicId: {
       type: Schema.Types.ObjectId,
       ref: 'TopicMetadata',
-      required: true
+      required: false
     },
     clips: {
       type: [Schema.Types.ObjectId],
