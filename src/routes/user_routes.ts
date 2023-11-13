@@ -1,6 +1,9 @@
-import { Router } from 'express'
+import { Request, Response, Router } from 'express'
 import { requireAuth, requireSignin } from '../services/passport'
 import * as User from '../controllers/user_controllers'
+import { randomUUID } from 'crypto'
+import UserModel from '../models/user_model'
+import { VideoMetadataDocument } from '../models/video_models'
 
 const router = Router()
 
@@ -191,5 +194,80 @@ router.post('/user/resend', requireAuth, async (req, res) => {
     res.status(422).send({ error: error.toString() })
   }
 })
+
+/**
+ * This is a technigala route used for sign in
+ * 
+ * @bodyparam firstName is the user's first name
+ * @bodyparam lastName is the user's last name
+ * 
+ * @returns token // a jwt token for auth
+ *          status // "onboarding" | "onboarded" | string
+ */
+
+router.post('/user/technigala/signin'),
+  async (
+    req: Request<{}, {}, { firstName: string; lastName: string }>,
+    res: Response<{ token?: string, status?: "onboarding" | "onboarded" | string}>
+  ) => {
+    try {
+      // check user status
+      const username = `${req.body.firstName.toLowerCase()}.${req.body.lastName.toLowerCase()}`
+      const userMetadata = await UserModel.findOne({ username: username })
+
+      // if user is a new account, create a new user
+      if (!userMetadata) {
+        const user = await UserModel.create({
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          username: username,
+          onBoardingStatus: "onboarding"
+        })
+        if (!user) throw new Error("User not created")
+        return res.status(200).json({ token: User.tokenForUser(user), status: "onboarding" })
+      }
+
+      // if user is an existing account, return login and status "onboarding | onboarded"
+      const status = userMetadata.onBoardingStatus === "onboarded" ? "onboarded" : "onboarding"
+      return res.status(200).json({ token: User.tokenForUser(userMetadata), status: status })
+    } catch (error) {
+      return res.status(500).send(error.message)
+    }
+  }
+
+/**
+ * This is a technigala route used for onboarding
+ * 
+ * @bodyparam topics: string[] // an array of any "coffee", "homedesign", "secondpunicwar", "mathematics", "artsandcrafts", "cars"
+ * 
+ * @returns playlists: an array of VideoMetadataDocuments
+ */
+router.post(
+  '/user/technigala/onboard',
+  requireAuth,
+  async (
+    req: Request<{}, {}, { topics: string[] }>,
+    res: Response<{ playlists: VideoMetadataDocument[], message: string }>
+  ) => {
+    try {
+      const topics = [
+        'coffee',
+        'homedesign',
+        'secondpunicwar',
+        'mathematics',
+        'artsandcrafts',
+        'cars'
+      ]
+
+      const userId = req.user._id
+
+      // each topic, a precomputed list of videos will be loaded in for each sub topic (e.g. coffee -> coffee brewing, coffee roasting, etc.)
+      // they need to exist already in the database as IDs
+      // videos already need to exist as well for the mapping to happen
+
+      // if user is an existing account, update user
+    } catch (error) {}
+  }
+)
 
 export default router

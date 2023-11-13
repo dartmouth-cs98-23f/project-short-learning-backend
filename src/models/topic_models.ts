@@ -13,7 +13,7 @@ const topicMetadataSchema = new Schema<TopicMetadataDocument>(
   {
     topicName: { type: String, required: true },
     subTopicName: { type: String, required: false },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
     thumbnailURL: { type: String, required: false },
     combinedTopicName: { type: String, required: true }
   },
