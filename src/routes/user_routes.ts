@@ -4,6 +4,7 @@ import * as User from '../controllers/user_controllers'
 import { randomUUID } from 'crypto'
 import UserModel from '../models/user_model'
 import { VideoMetadataDocument } from '../models/video_models'
+import { logger } from '../services/logger'
 
 const router = Router()
 
@@ -197,10 +198,10 @@ router.post('/user/resend', requireAuth, async (req, res) => {
 
 /**
  * This is a technigala route used for sign in
- * 
+ *
  * @bodyparam firstName is the user's first name
  * @bodyparam lastName is the user's last name
- * 
+ *
  * @returns token // a jwt token for auth
  *          status // "onboarding" | "onboarded" | string
  */
@@ -208,7 +209,10 @@ router.post('/user/resend', requireAuth, async (req, res) => {
 router.post('/user/technigala/signin'),
   async (
     req: Request<{}, {}, { firstName: string; lastName: string }>,
-    res: Response<{ token?: string, status?: "onboarding" | "onboarded" | string}>
+    res: Response<{
+      token?: string
+      status?: 'onboarding' | 'onboarded' | string
+    }>
   ) => {
     try {
       // check user status
@@ -221,15 +225,22 @@ router.post('/user/technigala/signin'),
           firstName: req.body.firstName,
           lastName: req.body.lastName,
           username: username,
-          onBoardingStatus: "onboarding"
+          onBoardingStatus: 'onboarding'
         })
-        if (!user) throw new Error("User not created")
-        return res.status(200).json({ token: User.tokenForUser(user), status: "onboarding" })
+        if (!user) throw new Error('User not created')
+        return res
+          .status(200)
+          .json({ token: User.tokenForUser(user), status: 'onboarding' })
       }
 
       // if user is an existing account, return login and status "onboarding | onboarded"
-      const status = userMetadata.onBoardingStatus === "onboarded" ? "onboarded" : "onboarding"
-      return res.status(200).json({ token: User.tokenForUser(userMetadata), status: status })
+      const status =
+        userMetadata.onBoardingStatus === 'onboarded'
+          ? 'onboarded'
+          : 'onboarding'
+      return res
+        .status(200)
+        .json({ token: User.tokenForUser(userMetadata), status: status })
     } catch (error) {
       return res.status(500).send(error.message)
     }
@@ -237,9 +248,9 @@ router.post('/user/technigala/signin'),
 
 /**
  * This is a technigala route used for onboarding
- * 
+ *
  * @bodyparam topics: string[] // an array of any "coffee", "homedesign", "secondpunicwar", "mathematics", "artsandcrafts", "cars"
- * 
+ *
  * @returns playlists: an array of VideoMetadataDocuments
  */
 router.post(
@@ -247,10 +258,10 @@ router.post(
   requireAuth,
   async (
     req: Request<{}, {}, { topics: string[] }>,
-    res: Response<{ playlists: VideoMetadataDocument[], message: string }>
+    res: Response<{ playlists?: VideoMetadataDocument[]; message?: string }>
   ) => {
     try {
-      const topics = [
+      const realTopics = [
         'coffee',
         'homedesign',
         'secondpunicwar',
@@ -259,14 +270,35 @@ router.post(
         'cars'
       ]
 
+      const topics = req.body.topics
+
       const userId = req.user._id
+      const userMetadata = await UserModel.findById(userId)
+      if (!userMetadata)
+        return res.status(404).json({ message: 'User not found' })
 
       // each topic, a precomputed list of videos will be loaded in for each sub topic (e.g. coffee -> coffee brewing, coffee roasting, etc.)
       // they need to exist already in the database as IDs
       // videos already need to exist as well for the mapping to happen
-
       // if user is an existing account, update user
-    } catch (error) {}
+
+      for (const topic of topics) {
+        if (!(topic in realTopics)) {
+          return res
+            .status(422)
+            .json({
+              message: `${topic} is not a topic, topics: ${realTopics}, check formatting?`
+            })
+        }
+      }
+      
+      return res
+        .status(200)
+        .json({ playlists: [], message: `Successfully onboarded, topics recieved: ${topics}, some playlists will be returned but not at this time` })
+    } catch (error) {
+      logger.error(error)
+      return res.status(500).send(error.message)
+    }
   }
 )
 
