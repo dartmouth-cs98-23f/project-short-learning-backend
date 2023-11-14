@@ -131,8 +131,8 @@ export const getPlaylistRecommendation = async (
   res: Response
 ) => {
   const userId = req.user
-  const combinedTopicName = req.query.combinedTopicName
-  const topicId = req.query.topicId
+  var combinedTopicName = req.query.combinedTopicName
+  var topicId = req.query.topicId
   const numPlaylists =
     req.query.numPlaylists > 10 ? 10 : req.query.numPlaylists || 1
 
@@ -154,6 +154,7 @@ export const getPlaylistRecommendation = async (
   if (topicId) {
     const topicMetadata: TopicMetadataDocument =
       await TopicMetadata.findById(topicId)
+    combinedTopicName = topicMetadata.combinedTopicName
     if (!topicMetadata) {
       logger.warn(`No topic found for user: ' + ${userId}, topic: ${topicId}`)
       return res.status(404).json({ message: 'Recommendations not found' })
@@ -161,14 +162,17 @@ export const getPlaylistRecommendation = async (
     recommendationArray = precomputedRecommendationsDocument.topicSequences.get(
       topicMetadata.combinedTopicName
     )
+    
   } else if (combinedTopicName) {
     recommendationArray =
       precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
+
+      topicId = (await TopicMetadata.findOne({combinedTopicName: combinedTopicName}))._id
   } else {
 
-    recommendationArray = precomputedRecommendationsDocument.topicSequences.get(
-      precomputedRecommendationsDocument.topicSequences.keys().next().value
-    )
+    combinedTopicName = precomputedRecommendationsDocument.topicSequences.keys().next().value
+    recommendationArray = precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
+    topicId = (await TopicMetadata.findOne({combinedTopicName: combinedTopicName}))._id
   }
 
   if (!recommendationArray) {
@@ -211,7 +215,9 @@ export const getPlaylistRecommendation = async (
 
   return res.status(200).json({
     message: 'Success',
-    playlists: sequence
+    playlists: sequence,
+    combinedTopicName: combinedTopicName,
+    topicId: topicId
   })
 }
 
