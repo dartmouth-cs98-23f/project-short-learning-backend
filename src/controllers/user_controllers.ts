@@ -3,6 +3,7 @@ import User, { UserDocument } from '../models/user_model'
 import UserAffinity from '../models/user_affinity_model'
 import { sendEmail } from '../utils/sendEmail'
 import UserModel from '../models/user_model'
+import { randomUUID } from 'crypto'
 import { logger } from '../services/logger'
 
 export const signin = (user) => {
@@ -19,11 +20,7 @@ export const signup = async ({
 }) => {
   if (
     !email ||
-    !password ||
-    !username ||
-    !firstName ||
-    !lastName ||
-    !birthDate
+    !password
   ) {
     throw new Error('Incomplete information provided')
   }
@@ -40,15 +37,15 @@ export const signup = async ({
   }
 
   const user = new User()
-  user.firstName = firstName
-  user.lastName = lastName
+  user.firstName = firstName || randomUUID()
+  user.lastName = lastName || randomUUID()
   user.email = email
-  user.username = username
+  user.username = username || randomUUID()
   user.password = password
-  user.birthDate = new Date(birthDate)
+  user.birthDate = new Date()
   user.registrationDate = new Date()
   user.lastLoginDate = new Date()
-  user.onBoardingStatus = 'verifying'
+  user.onBoardingStatus = 'onboarding'
   await user.save()
 
   return tokenForUser(user)
