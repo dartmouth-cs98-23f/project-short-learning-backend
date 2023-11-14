@@ -130,95 +130,117 @@ export const getPlaylistRecommendation = async (
   req: Request<{}, {}, {}, GetPlaylistQueryParams>,
   res: Response
 ) => {
-  const userId = req.user
-  var combinedTopicName = req.query.combinedTopicName
-  var topicId = req.query.topicId
-  const numPlaylists =
-    req.query.numPlaylists > 10 ? 10 : req.query.numPlaylists || 1
+  try {
+    const userId = req.user
+    var combinedTopicName = req.query.combinedTopicName
+    var topicId = req.query.topicId
+    const numPlaylists =
+      req.query.numPlaylists > 10 ? 10 : req.query.numPlaylists || 1
 
-  var recommendationArray
+    var recommendationArray
 
-  logger.debug(
-    `Getting new playlist for user: ' + ${userId}, topic: ${combinedTopicName}, numPlaylists: ${numPlaylists}`
-  )
+    logger.debug(
+      `Getting new playlist for user: ' + ${userId}, topic: ${combinedTopicName}, numPlaylists: ${numPlaylists}`
+    )
 
-  const precomputedRecommendationsDocument: PrecomputedRecommendationsDocument =
-    await PrecomputedRecommendations.findOne({
-      userId: userId
-    })
-  if (!precomputedRecommendationsDocument) {
-    logger.warn(`No precomputed document for user: ' + ${userId}`)
-    return res.status(404).json({ message: 'Recommendations not found' })
-  }
-
-  if (topicId) {
-    const topicMetadata: TopicMetadataDocument =
-      await TopicMetadata.findById(topicId)
-    combinedTopicName = topicMetadata.combinedTopicName
-    if (!topicMetadata) {
-      logger.warn(`No topic found for user: ' + ${userId}, topic: ${topicId}`)
+    const precomputedRecommendationsDocument: PrecomputedRecommendationsDocument =
+      await PrecomputedRecommendations.findOne({
+        userId: userId
+      })
+    if (!precomputedRecommendationsDocument) {
+      logger.warn(`No precomputed document for user: ' + ${userId}`)
       return res.status(404).json({ message: 'Recommendations not found' })
     }
-    recommendationArray = precomputedRecommendationsDocument.topicSequences.get(
-      topicMetadata.combinedTopicName
-    )
-    
-  } else if (combinedTopicName) {
-    recommendationArray =
-      precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
 
-      topicId = (await TopicMetadata.findOne({combinedTopicName: combinedTopicName}))._id
-  } else {
+    if (topicId) {
+      const topicMetadata: TopicMetadataDocument =
+        await TopicMetadata.findById(topicId)
+      combinedTopicName = topicMetadata.combinedTopicName
+      if (!topicMetadata) {
+        logger.warn(`No topic found for user: ' + ${userId}, topic: ${topicId}`)
+        return res.status(404).json({ message: 'Recommendations not found' })
+      }
+      recommendationArray =
+        precomputedRecommendationsDocument.topicSequences.get(
+          topicMetadata.combinedTopicName
+        )
+    } else if (combinedTopicName) {
+      recommendationArray =
+        precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
 
-    combinedTopicName = precomputedRecommendationsDocument.topicSequences.keys().next().value
-    recommendationArray = precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
-    topicId = (await TopicMetadata.findOne({combinedTopicName: combinedTopicName}))._id
-  }
-
-  if (!recommendationArray) {
-    logger.warn(
-      `No topic found for user: ' + ${userId}, topic: ${combinedTopicName}`
-    )
-    return res.status(404).json({ message: 'Recommendations not found' })
-  }
-
-  logger.debug(
-    `Found recommendations for user: ' + ${userId}, topic: ${combinedTopicName}`
-  )
-
-  const playlistIds = recommendationArray.splice(0, numPlaylists)
-
-  const sequence = []
-  logger.debug(`playlistIds: ${playlistIds}`)
-
-  for (var i = 0, len = playlistIds.length; i < len; i++) {
-    const playlist: VideoMetadataDocument = await VideoMetadata.findById(
-      playlistIds[i]
-    )
-      .populate('clips')
-      .exec()
-    if (!playlist) {
-      logger.warn(`No playlist found playlistID: ${playlistIds[i]}`)
+      topicId = (
+        await TopicMetadata.findOne({ combinedTopicName: combinedTopicName })
+      )._id
     } else {
-      logger.debug(`found ${playlist.title}`)
-      sequence.push(playlist)
+      // generate random number based on length of topicSequences
+      // get that topicSequence
+
+      const topicSequences = precomputedRecommendationsDocument.topicSequences
+      const it = topicSequences.keys()
+      const randomIndex = Math.floor(Math.random() * topicSequences.size)
+      for (var i = 0; i < randomIndex; i++) {
+        const topicName = it.next().value
+        if (topicName === undefined) {
+          break
+        }
+        combinedTopicName = topicName
+      }
+      recommendationArray =
+        precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
+      topicId = (
+        await TopicMetadata.findOne({ combinedTopicName: combinedTopicName })
+      )._id
     }
-  }
 
-  logger.debug(`sequence: ${sequence.length}, numPlaylists: ${numPlaylists}`)
-  if (sequence.length != numPlaylists) {
+    if (!recommendationArray) {
+      logger.warn(
+        `No topic found for user: ' + ${userId}, topic: ${combinedTopicName}`
+      )
+      return res.status(404).json({ message: 'Recommendations not found' })
+    }
+
+    logger.debug(
+      `Found recommendations for user: ' + ${userId}, topic: ${combinedTopicName}`
+    )
+
+    const playlistIds = recommendationArray.splice(0, numPlaylists)
+
+    const sequence = []
+    logger.debug(`playlistIds: ${playlistIds}`)
+
+    for (var i = 0, len = playlistIds.length; i < len; i++) {
+      const playlist: VideoMetadataDocument = await VideoMetadata.findById(
+        playlistIds[i]
+      )
+        .populate('clips')
+        .exec()
+      if (!playlist) {
+        logger.warn(`No playlist found playlistID: ${playlistIds[i]}`)
+      } else {
+        logger.debug(`found ${playlist.title}`)
+        sequence.push(playlist)
+      }
+    }
+
+    logger.debug(`sequence: ${sequence.length}, numPlaylists: ${numPlaylists}`)
+    if (sequence.length != numPlaylists) {
+      return res.status(200).json({
+        message:
+          'Success, but could not find all playlists or too many queried',
+        playlists: sequence
+      })
+    }
+
     return res.status(200).json({
-      message: 'Success, but could not find all playlists or too many queried',
-      playlists: sequence
+      message: 'Success',
+      playlists: sequence,
+      combinedTopicName: combinedTopicName,
+      topicId: topicId
     })
+  } catch (error) {
+    logger.error(`Something failed: ${error}`)
+    return res.status(500).json({ message: 'Server Error' })
   }
-
-  return res.status(200).json({
-    message: 'Success',
-    playlists: sequence,
-    combinedTopicName: combinedTopicName,
-    topicId: topicId
-  })
 }
 
 export const getTopicsRecommendation = async (

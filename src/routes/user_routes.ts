@@ -5,6 +5,9 @@ import { randomUUID } from 'crypto'
 import UserModel from '../models/user_model'
 import { VideoMetadataDocument } from '../models/video_models'
 import { logger } from '../services/logger'
+import { topicToVideosMap } from '../utils/topicToVideos'
+import { PrecomputedRecommendations } from '../models/recommendation_models'
+import mongoose from 'mongoose'
 
 const router = Router()
 
@@ -63,7 +66,7 @@ router.post('/auth/signin', requireSignin, async (req, res) => {
     const object = User.signin(req.user)
     const token = object[0]
     const user: any = object[1]
-    res.json({ token, user, status: user.onBoardingStatus})
+    res.json({ token, user, status: user.onBoardingStatus })
   } catch (error) {
     res.status(422).send({ error: error.toString() })
   }
@@ -220,7 +223,9 @@ router.post(
     logger.debug('asd')
     try {
       // check user status
-      const username = `${String(req.body.firstName).toLowerCase()}.${String(req.body.lastName).toLowerCase()}`
+      const username = `${String(req.body.firstName).toLowerCase()}.${String(
+        req.body.lastName
+      ).toLowerCase()}`
       const userMetadata = await UserModel.findOne({ username: username })
 
       // if user is a new account, create a new user
@@ -290,9 +295,55 @@ router.post(
 
       for (const topic of topics) {
         if (!realTopics.includes(topic))
-          return res.status(422).json({ message: `Invalid topic, { ${topic} }` })
+          return res
+            .status(422)
+            .json({ message: `Invalid topic, { ${topic} }` })
       }
 
+      const topicMap = {
+        coffee: 'coffee',
+        homedesign: 'home-design',
+        secondpunicwar: 'second-punic-war',
+        mathematics: 'mathematics',
+        artsandcrafts: 'arts-and-crafts',
+        cars: 'cars'
+      }
+
+      const subtopicmap = {
+        coffee: [
+          'coffee-workflow',
+          'coffee-research',
+          'latte-art',
+          'brewing-techniques'
+        ],
+        'home-design': ['kitchen-design', 'minimalism', 'landscaping'],
+        'second-punic-war': ['crossing-the-alps'],
+        mathematics: ['calculus', 'algebra', 'logic'],
+        'arts-and-crafts': ['crocheting', 'origami', 'embroidery'],
+        cars: ['engines', 'maintenance', 'snow-driving-tips']
+      }
+
+      const topicSequences = new Map<string, mongoose.Types.ObjectId[]>()
+
+      for (var i = 0; i < topics.length; i++) {
+        const topic = topics[i]
+        const databaseName = topicMap[topic]
+        const subtopics = subtopicmap[databaseName]
+        for (var j = 0; j < subtopics.length; j++) {
+          const subtopic = subtopics[j]
+          const combinedTopicName = `${databaseName}/${subtopic}`
+          const videoIds = topicToVideosMap[subtopic]
+          topicSequences.set(combinedTopicName, videoIds)
+        }
+      }
+
+      const precomputedRecommendations =
+        await PrecomputedRecommendations.create({
+          userId: userId,
+          topicSequences
+        })
+
+      logger.debug(precomputedRecommendations)
       return res.status(200).json({
         playlists: [],
         message: `Successfully onboarded, topics recieved: ${topics}, some playlists will be returned but not at this time`

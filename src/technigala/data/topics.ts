@@ -58,46 +58,11 @@ export const topicDocuments: PopTopicsDocument[] = [
     displaySubtopicName: "Landscaping"
   },
   {
-    topicName: 'home-design',
-    subTopicName: 'sustainable-design',
-    thumbnailurl: 'homeurl',
-    displayTopicName: "Home Design",
-    displaySubtopicName: "Sustainable Design"
-  },
-  {
-    topicName: 'home-design',
-    subTopicName: 'tiny-homes',
-    thumbnailurl: 'homeurl',
-    displayTopicName: "Home Design",
-    displaySubtopicName: "Tiny Homes"
-  },
-  {
     topicName: 'second-punic-war',
     subTopicName: 'crossing-the-alps',
     thumbnailurl: 'punicurl',
     displayTopicName: "Second Punic War",
     displaySubtopicName: "Crossing the Alps"
-  },
-  {
-    topicName: 'second-punic-war',
-    subTopicName: 'lake-trasimene',
-    thumbnailurl: 'punicurl',
-    displayTopicName: "Second Punic War",
-    displaySubtopicName: "Lake Trasimene"
-  },
-  {
-    topicName: 'second-punic-war',
-    subTopicName: 'cannae',
-    thumbnailurl: 'punicurl',
-    displayTopicName: "Second Punic War",
-    displaySubtopicName: "Cannae"
-  },
-  {
-    topicName: 'second-punic-war',
-    subTopicName: 'zama',
-    thumbnailurl: 'punicurl',
-    displayTopicName: "Second Punic War",
-    displaySubtopicName: "Zama"
   },
   {
     topicName: 'mathematics',

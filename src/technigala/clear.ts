@@ -5,6 +5,8 @@ import { TopicMetadata } from '../models/topic_models'
 import { VideoMetadata } from '../models/video_models'
 import { ClipMetadata } from '../models/clip_models'
 import { createTopicVideoFile } from './utils'
+import { PrecomputedRecommendations } from '../models/recommendation_models'
+import UserModel from '../models/user_model'
 
 dotenv.config()
 
@@ -15,17 +17,11 @@ async function run() {
     console.log('Connected to MongoDB')
 
     // delete entire database
-    await TopicMetadata.deleteMany({})
-    await VideoMetadata.deleteMany({})
-    await ClipMetadata.deleteMany({})
-    console.log('Dropped database')
+    await PrecomputedRecommendations.deleteMany({})
+    await UserModel.deleteMany({})
+    console.log('Dropped users and pre')
 
-    // populate topics
-    const res = await populateTopics() as any
-
-    const topicToVideos = await populateVideos(res[0], res[1])
-
-    createTopicVideoFile('topicToVideos', topicToVideos)
+    // populate topi
 
     console.log("done")
   } catch (err) {
