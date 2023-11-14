@@ -299,6 +299,21 @@ describe('Precomputed Recommendations', () => {
     })
   })
 
+  it('Gets playlist recommendations for a topic without any id or name', () => {
+    cy.request({
+      method: 'GET',
+      url: `${URL}/recommendations/playlist?numPlaylists=2`,
+      headers: {
+        Authorization: token
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      cy.task('log', response.body)
+      expect(response.body.playlists[0]).to.have.property('_id')
+      expect(response.body.playlists[1]).to.have.property('_id')
+    })
+  })
+
   it('Tried to get too many playlist recommendations for a topic', () => {
     cy.request({
       failOnStatusCode: false,

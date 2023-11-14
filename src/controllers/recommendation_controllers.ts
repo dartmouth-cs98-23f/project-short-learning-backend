@@ -133,14 +133,10 @@ export const getPlaylistRecommendation = async (
   const userId = req.user
   const combinedTopicName = req.query.combinedTopicName
   const topicId = req.query.topicId
-
-  if (!topicId && !combinedTopicName) {
-    return res
-      .status(422)
-      .json({ message: 'Missing { topicId } or { combinedTopicName' })
-  }
   const numPlaylists =
     req.query.numPlaylists > 10 ? 10 : req.query.numPlaylists || 1
+
+  var recommendationArray
 
   logger.debug(
     `Getting new playlist for user: ' + ${userId}, topic: ${combinedTopicName}, numPlaylists: ${numPlaylists}`
@@ -150,16 +146,32 @@ export const getPlaylistRecommendation = async (
     await PrecomputedRecommendations.findOne({
       userId: userId
     })
-
   if (!precomputedRecommendationsDocument) {
     logger.warn(`No precomputed document for user: ' + ${userId}`)
     return res.status(404).json({ message: 'Recommendations not found' })
   }
 
-  const recommendationObject =
-    precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
+  if (topicId) {
+    const topicMetadata: TopicMetadataDocument =
+      await TopicMetadata.findById(topicId)
+    if (!topicMetadata) {
+      logger.warn(`No topic found for user: ' + ${userId}, topic: ${topicId}`)
+      return res.status(404).json({ message: 'Recommendations not found' })
+    }
+    recommendationArray = precomputedRecommendationsDocument.topicSequences.get(
+      topicMetadata.combinedTopicName
+    )
+  } else if (combinedTopicName) {
+    recommendationArray =
+      precomputedRecommendationsDocument.topicSequences.get(combinedTopicName)
+  } else {
 
-  if (!recommendationObject) {
+    recommendationArray = precomputedRecommendationsDocument.topicSequences.get(
+      precomputedRecommendationsDocument.topicSequences.keys().next().value
+    )
+  }
+
+  if (!recommendationArray) {
     logger.warn(
       `No topic found for user: ' + ${userId}, topic: ${combinedTopicName}`
     )
@@ -170,7 +182,7 @@ export const getPlaylistRecommendation = async (
     `Found recommendations for user: ' + ${userId}, topic: ${combinedTopicName}`
   )
 
-  const playlistIds = recommendationObject.splice(0, numPlaylists)
+  const playlistIds = recommendationArray.splice(0, numPlaylists)
 
   const sequence = []
   logger.debug(`playlistIds: ${playlistIds}`)
