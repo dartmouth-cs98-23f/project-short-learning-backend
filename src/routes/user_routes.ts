@@ -206,7 +206,8 @@ router.post('/user/resend', requireAuth, async (req, res) => {
  *          status // "onboarding" | "onboarded" | string
  */
 
-router.post('/user/technigala/signin'),
+router.post(
+  '/user/technigala/signin',
   async (
     req: Request<{}, {}, { firstName: string; lastName: string }>,
     res: Response<{
@@ -214,9 +215,10 @@ router.post('/user/technigala/signin'),
       status?: 'onboarding' | 'onboarded' | string
     }>
   ) => {
+    logger.debug('asd')
     try {
       // check user status
-      const username = `${req.body.firstName.toLowerCase()}.${req.body.lastName.toLowerCase()}`
+      const username = `${String(req.body.firstName).toLowerCase()}.${String(req.body.lastName).toLowerCase()}`
       const userMetadata = await UserModel.findOne({ username: username })
 
       // if user is a new account, create a new user
@@ -245,6 +247,7 @@ router.post('/user/technigala/signin'),
       return res.status(500).send(error.message)
     }
   }
+)
 
 /**
  * This is a technigala route used for onboarding
@@ -284,17 +287,16 @@ router.post(
 
       for (const topic of topics) {
         if (!(topic in realTopics)) {
-          return res
-            .status(422)
-            .json({
-              message: `${topic} is not a topic, topics: ${realTopics}, check formatting?`
-            })
+          return res.status(422).json({
+            message: `${topic} is not a topic, topics: ${realTopics}, check formatting?`
+          })
         }
       }
-      
-      return res
-        .status(200)
-        .json({ playlists: [], message: `Successfully onboarded, topics recieved: ${topics}, some playlists will be returned but not at this time` })
+
+      return res.status(200).json({
+        playlists: [],
+        message: `Successfully onboarded, topics recieved: ${topics}, some playlists will be returned but not at this time`
+      })
     } catch (error) {
       logger.error(error)
       return res.status(500).send(error.message)
