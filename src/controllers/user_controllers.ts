@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto'
 import { logger } from '../services/logger'
 
 export const signin = (user) => {
-  return tokenForUser(user)
+  return [tokenForUser(user), user]
 }
 
 export const signup = async ({
@@ -18,10 +18,8 @@ export const signup = async ({
   password,
   birthDate
 }) => {
-  if (
-    !email ||
-    !password
-  ) {
+  logger.debug("asd")
+  if (!email || !password) {
     throw new Error('Incomplete information provided')
   }
   // See if a user with the given email exists

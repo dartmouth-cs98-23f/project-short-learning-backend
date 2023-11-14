@@ -60,8 +60,10 @@ router.post('/auth/signup', async (req, res) => {
  */
 router.post('/auth/signin', requireSignin, async (req, res) => {
   try {
-    const token = User.signin(req.user)
-    res.json({ token })
+    const object = User.signin(req.user)
+    const token = object[0]
+    const user: any = object[1]
+    res.json({ token, user, status: user.onBoardingStatus})
   } catch (error) {
     res.status(422).send({ error: error.toString() })
   }
