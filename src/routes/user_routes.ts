@@ -287,11 +287,8 @@ router.post(
       // if user is an existing account, update user
 
       for (const topic of topics) {
-        if (!(topic in realTopics)) {
-          return res.status(422).json({
-            message: `${topic} is not a topic, topics: ${realTopics}, check formatting?`
-          })
-        }
+        if (!realTopics.includes(topic))
+          return res.status(422).json({ message: `Invalid topic, { ${topic} }` })
       }
 
       return res.status(200).json({
