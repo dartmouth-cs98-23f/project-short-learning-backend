@@ -226,6 +226,7 @@ router.post(
         const user = await UserModel.create({
           firstName: req.body.firstName,
           lastName: req.body.lastName,
+          email: `${randomUUID()}@technigala.com`,
           username: username,
           onBoardingStatus: 'onboarding'
         })
