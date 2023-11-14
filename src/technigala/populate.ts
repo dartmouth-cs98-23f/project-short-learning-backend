@@ -70,7 +70,6 @@ export const populateVideos = async (topicMap: Map<string, string>, topicToVideo
         .substring(folderName.indexOf('_', folderName.indexOf('_') + 1) + 1)
         .replace(/_/g, ' ')
       const duration = 0
-      const thumbnailURL = ''
 
       if (topic == 'arts&crafts') {
         topic = 'Arts and Crafts'
@@ -78,6 +77,17 @@ export const populateVideos = async (topicMap: Map<string, string>, topicToVideo
 
       const topicId = topicMap.get(`${topic}/${subTopic}`)
 
+      // lowercase, replace spaces with dashes
+      const realTopicName = topic.replace(/ /g, '-').toLowerCase()
+      const realSubTopicName = subTopic.replace(/ /g, '-').toLowerCase()
+      const realTopicComibined = `${realTopicName}/${realSubTopicName}`
+
+      const topicMetadata = await TopicMetadata.findOne({
+        combinedTopicName: realTopicComibined
+      })
+
+      const thumbnailURL = topicMetadata.thumbnailURL
+      
       const videoMetadata = await VideoMetadata.create({
         title: title,
         description:
