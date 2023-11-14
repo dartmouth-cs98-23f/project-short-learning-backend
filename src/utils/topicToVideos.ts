@@ -1,2 +1,22 @@
 export const topicToVideosMap = {
-    "coffee-workflow": ["6553b3c9613f12662943d378"],  "coffee-research": ["6553b3c8613f12662943d350"],  "latte-art": ["6553b3ca613f12662943d39a"],  "brewing-techniques": ["6553b3c7613f12662943d316","6553b3c8613f12662943d336"],  "kitchen-design": ["6553b3cc613f12662943d3c8","6553b3cd613f12662943d3f0"],  "minimalism": ["6553b3ce613f12662943d41e","6553b3cf613f12662943d438"],  "landscaping": ["6553b3cd613f12662943d404","6553b3cd613f12662943d40e"],  "crossing-the-alps": ["6553b3d5613f12662943d53e","6553b3d5613f12662943d554"],  "calculus": ["6553b3d1613f12662943d4a0","6553b3d2613f12662943d4b6"],  "algebra": ["6553b3cf613f12662943d44c","6553b3d0613f12662943d466"],  "logic": ["6553b3d3613f12662943d4e2","6553b3d4613f12662943d528"],  "crocheting": ["6553b3bd613f12662943d1ae","6553b3bf613f12662943d1ea"],  "origami": ["6553b3c1613f12662943d240","6553b3c1613f12662943d24a"],  "embroidery": ["6553b3bf613f12662943d1fe","6553b3c0613f12662943d210"],  "engines": ["6553b3c3613f12662943d282","6553b3c3613f12662943d294"],  "maintenance": ["6553b3c4613f12662943d2a6","6553b3c5613f12662943d2d2"],  "snow-driving-tips": ["6553b3c6613f12662943d2f0","6553b3c6613f12662943d2fe"]}
+  'coffee-workflow': ['6553d8e8df250216aca54311'],
+  'coffee-research': ['6553d8e7df250216aca542e9'],
+  'latte-art': ['6553d8e8df250216aca54333'],
+  'brewing-techniques': [
+    '6553d8e6df250216aca542af',
+    '6553d8e7df250216aca542cf'
+  ],
+  'kitchen-design': ['6553d8e9df250216aca54361', '6553d8e9df250216aca54389'],
+  minimalism: ['6553d8eadf250216aca543b7', '6553d8ebdf250216aca543d1'],
+  landscaping: ['6553d8eadf250216aca5439d', '6553d8eadf250216aca543a7'],
+  'crossing-the-alps': ['6553d8eedf250216aca544d7', '6553d8efdf250216aca544ed'],
+  calculus: ['6553d8ecdf250216aca54439', '6553d8ecdf250216aca5444f'],
+  algebra: ['6553d8ebdf250216aca543e5', '6553d8ebdf250216aca543ff'],
+  logic: ['6553d8eddf250216aca5447b', '6553d8eedf250216aca544c1'],
+  crocheting: ['6553d8e1df250216aca54147', '6553d8e2df250216aca54183'],
+  origami: ['6553d8e3df250216aca541d9', '6553d8e3df250216aca541e3'],
+  embroidery: ['6553d8e2df250216aca54197', '6553d8e2df250216aca541a9'],
+  engines: ['6553d8e4df250216aca5421b', '6553d8e4df250216aca5422d'],
+  maintenance: ['6553d8e5df250216aca5423f', '6553d8e5df250216aca5426b'],
+  'snow-driving-tips': ['6553d8e6df250216aca54289', '6553d8e6df250216aca54297']
+}

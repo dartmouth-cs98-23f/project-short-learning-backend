@@ -19,6 +19,7 @@ import {
   TopicMetadata,
   TopicMetadataDocument
 } from '../models/topic_models'
+import { topicToVideosMap } from '../utils/topicToVideos'
 
 export const getPrecomputedRecommendationDocument = async (
   req: Request<{}, {}, {}, GetPrecomputedQueryParams>,
@@ -131,7 +132,7 @@ export const getPlaylistRecommendation = async (
   res: Response
 ) => {
   try {
-    const userId = req.user
+    const userId = req.user as any as mongoose.Types.ObjectId
     var topicId = req.query.topicId
     const numPlaylists =
       req.query.numPlaylists > 10 ? 10 : req.query.numPlaylists || 1
@@ -150,8 +151,7 @@ export const getPlaylistRecommendation = async (
         userId: userId
       })
     if (!precomputedRecommendationsDocument) {
-      logger.warn(`No precomputed document for user: ' + ${userId}`)
-      return res.status(404).json({ message: 'Recommendations not found' })
+      await createPrecomputedRecommendations(userId)
     }
 
     if (topicId) {
@@ -242,7 +242,7 @@ export const getTopicsRecommendation = async (
   res: Response<GetTopicsResponse>
 ) => {
   try {
-    const userId = req.user
+    const userId = req.user as any as mongoose.Types.ObjectId
 
     const precomputedRecommendationsDocument: PrecomputedRecommendationsDocument =
       await PrecomputedRecommendations.findOne({
@@ -251,7 +251,7 @@ export const getTopicsRecommendation = async (
 
     if (!precomputedRecommendationsDocument) {
       logger.warn(`No precomputed document for user: ' + ${userId}`)
-      return res.status(404).json({ message: 'Recommendations not found' })
+      await createPrecomputedRecommendations(userId)
     }
 
     const topicSequences: Map<string, mongoose.Types.ObjectId[]> =
@@ -286,4 +286,41 @@ export const getTopicsRecommendation = async (
     logger.error(`Something failed: ${error}`)
     return res.status(500).json({ message: 'Server Error' })
   }
+}
+
+const createPrecomputedRecommendations = async (userId: mongoose.Types.ObjectId) => {
+  const allCombined = [
+    "coffee/coffee-workflow",
+    "coffee/coffee-research",
+    "coffee/latte-art",
+    "coffee/brewing-techniques",
+    "home-design/kitchen-design",
+    "home-design/minimalism",
+    "home-design/landscaping",
+    "second-punic-war/crossing-the-alps",
+    "mathematics/calculus",
+    "mathematics/algebra",
+    "mathematics/logic",
+    "arts-and-crafts/crocheting",
+    "arts-and-crafts/origami",
+    "arts-and-crafts/embroidery",
+    "cars/engines",
+    "cars/maintenance",
+    "cars/snow-driving-tips"
+  ]
+
+  const topicSequences = new Map()
+  for (const combinedTopicName of allCombined) {
+    const subtopicKey = combinedTopicName.split('/')[1]
+    topicSequences.set(combinedTopicName, topicToVideosMap[subtopicKey])
+  }
+
+  const precomputedRecommendationsDocument = await PrecomputedRecommendations.create({
+    userId: userId,
+    topicSequences: topicSequences
+  })
+  logger.debug(
+    `Created new precomputed recommendations for user: ' + ${userId}`
+  )
+  return precomputedRecommendationsDocument
 }

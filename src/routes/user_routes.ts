@@ -264,6 +264,38 @@ router.post(
  *
  * @returns playlists: an array of VideoMetadataDocuments
  */
+export const realTopics = [
+  'coffee',
+  'homedesign',
+  'secondpunicwar',
+  'mathematics',
+  'artsandcrafts',
+  'cars'
+]
+export const topicMap = {
+  coffee: 'coffee',
+  homedesign: 'home-design',
+  secondpunicwar: 'second-punic-war',
+  mathematics: 'mathematics',
+  artsandcrafts: 'arts-and-crafts',
+  cars: 'cars'
+}
+
+export const subtopicmap = {
+  coffee: [
+    'coffee-workflow',
+    'coffee-research',
+    'latte-art',
+    'brewing-techniques'
+  ],
+  'home-design': ['kitchen-design', 'minimalism', 'landscaping'],
+  'second-punic-war': ['crossing-the-alps'],
+  mathematics: ['calculus', 'algebra', 'logic'],
+  'arts-and-crafts': ['crocheting', 'origami', 'embroidery'],
+  cars: ['engines', 'maintenance', 'snow-driving-tips']
+}
+
+
 router.post(
   '/user/technigala/onboard',
   requireAuth,
@@ -272,17 +304,8 @@ router.post(
     res: Response<{ playlists?: VideoMetadataDocument[]; message?: string }>
   ) => {
     try {
-      const realTopics = [
-        'coffee',
-        'homedesign',
-        'secondpunicwar',
-        'mathematics',
-        'artsandcrafts',
-        'cars'
-      ]
 
       const topics = req.body.topics
-
       const userId = req.user._id
       const userMetadata = await UserModel.findById(userId)
       if (!userMetadata)
@@ -299,30 +322,6 @@ router.post(
             .status(422)
             .json({ message: `Invalid topic, { ${topic} }` })
       }
-
-      const topicMap = {
-        coffee: 'coffee',
-        homedesign: 'home-design',
-        secondpunicwar: 'second-punic-war',
-        mathematics: 'mathematics',
-        artsandcrafts: 'arts-and-crafts',
-        cars: 'cars'
-      }
-
-      const subtopicmap = {
-        coffee: [
-          'coffee-workflow',
-          'coffee-research',
-          'latte-art',
-          'brewing-techniques'
-        ],
-        'home-design': ['kitchen-design', 'minimalism', 'landscaping'],
-        'second-punic-war': ['crossing-the-alps'],
-        mathematics: ['calculus', 'algebra', 'logic'],
-        'arts-and-crafts': ['crocheting', 'origami', 'embroidery'],
-        cars: ['engines', 'maintenance', 'snow-driving-tips']
-      }
-
       const topicSequences = new Map<string, mongoose.Types.ObjectId[]>()
 
       for (var i = 0; i < topics.length; i++) {
