@@ -227,7 +227,9 @@ export const getPlaylistRecommendation = async (
       return res.status(200).json({
         message:
           'Success, but could not find all playlists or too many queried',
-        playlists: sequence
+        playlists: sequence,
+        combinedTopicName: combinedTopicName,
+        topicId: topicId
       })
     }
 
