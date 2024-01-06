@@ -5,6 +5,8 @@ export interface TopicMetadataDocument extends Document {
   combinedTopicName: string
   topicName: string
   subTopicName: string | undefined
+  displayTopicName: string
+  displaySubtopicName: string
   description: string
   thumbnailURL: string
 }
@@ -13,9 +15,11 @@ const topicMetadataSchema = new Schema<TopicMetadataDocument>(
   {
     topicName: { type: String, required: true },
     subTopicName: { type: String, required: false },
-    description: { type: String, required: true },
+    displayTopicName: { type: String, required: true },
+    displaySubtopicName: { type: String, required: false },
+    description: { type: String, required: false },
     thumbnailURL: { type: String, required: false },
-    combinedTopicName: { type: String, required: true }
+    combinedTopicName: { type: String, required: true },
   },
   { timestamps: true, collection: 'topic_metadata' }
 )
