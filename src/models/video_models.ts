@@ -8,6 +8,7 @@ export interface VideoMetadataDocument extends Document {
   uploader: mongoose.Types.ObjectId // userID
   duration: number // Seconds
   thumbnailURL: string // Link to S3
+  topicId: mongoose.Types.ObjectId
   clips: mongoose.Types.ObjectId[]
   views: mongoose.Types.ObjectId[] // Set of unique userIDs
   likes: mongoose.Types.ObjectId[] // Set of unique userIDs
@@ -22,6 +23,11 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
     uploader: { type: Schema.Types.ObjectId, required: false },
     duration: { type: Number, required: true },
     thumbnailURL: { type: String, required: false },
+    topicId: {
+      type: Schema.Types.ObjectId,
+      ref: 'TopicMetadata',
+      required: false
+    },
     clips: {
       type: [Schema.Types.ObjectId],
       ref: 'ClipMetadata',
