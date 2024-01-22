@@ -35,6 +35,7 @@ export const createVideoAffinity = async (videoId, { affinities }) => {
     })
 
     const savedVideoAffinity = await videoAffinity.save()
+
     return savedVideoAffinity
   } catch (error) {
     throw new Error(`Create video affinity error: ${error}`)

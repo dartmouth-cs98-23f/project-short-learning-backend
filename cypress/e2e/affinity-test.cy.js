@@ -347,6 +347,7 @@ describe('Video Affinity Test', () => {
     })
   })
 
+  // Delete the rest of the affinities
   it('Deleting an affinity for video', () => {
     cy.request({
       method: 'DELETE',

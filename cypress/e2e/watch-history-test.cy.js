@@ -205,6 +205,100 @@ describe('Watch History Test', () => {
     })
   });
 
+  // Create video affinity for all 3 videos
+  it('Creating video affinity for all 3 videos', () => {
+    cy.request({
+      method: 'POST',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/videos/${videoId1}/affinities`,
+      body: {
+        affinities: [
+          {
+            topic: 'Technology',
+            subTopic: 'Hardware',
+            affinityValue: 0.95
+          },
+          {
+            topic: 'Technology',
+            subTopic: 'Artificial Intelligence',
+            affinityValue: 0.2
+          }
+        ]
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+
+    cy.request({
+      method: 'POST',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/videos/${videoId2}/affinities`,
+      body: {
+        affinities: [
+          {
+            topic: 'Technology',
+            subTopic: 'Artificial Intelligence',
+            affinityValue: 0.55
+          }
+        ]
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+
+    cy.request({
+      method: 'POST',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/videos/${videoId3}/affinities`,
+      body: {
+        affinities: [
+          {
+            topic: 'Technology',
+            subTopic: 'Cybersecurity',
+            affinityValue: 0.3
+          }
+        ]
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+  });
+
+  it('Dashboard test for user', () => {
+    cy.request({
+      method: 'GET',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/dashboard`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('topicAffinity')
+      expect(response.body).to.have.property('subtopicAffinity')
+      const threshold = 0.0001;
+        
+      let topicAffinitySum = 0;
+      for (const key in response.body.topicAffinity) {
+        topicAffinitySum += response.body.topicAffinity[key];
+      }
+      expect(Math.abs(topicAffinitySum - 1)).to.be.lessThan(threshold);
+
+      // Check if subtopicAffinity sums up to 1
+      let subtopicAffinitySum = 0;
+      for (const key in response.body.subtopicAffinity) {
+        subtopicAffinitySum += response.body.subtopicAffinity[key];
+      }
+      expect(Math.abs(subtopicAffinitySum - 1)).to.be.lessThan(threshold);
+
+    })
+  })
+
   it('Deleting a video from watch history', () => {
     cy.request({
       method: 'DELETE',
@@ -241,6 +335,27 @@ describe('Watch History Test', () => {
       expect(response.body).to.have.lengthOf(0)
     })
   });
+  
+  it('Deleting all video affinities', () => {
+    cy.request({
+      method: 'DELETE',
+      url: `${URL}/videos/${videoId1}/affinities`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+    cy.request({
+      method: 'DELETE',
+      url: `${URL}/videos/${videoId2}/affinities`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+    cy.request({
+      method: 'DELETE',
+      url: `${URL}/videos/${videoId3}/affinities`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+  })
 
   it('Deleting all videos', () => {
     cy.request({
