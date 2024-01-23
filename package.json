@@ -10,8 +10,10 @@
     "test": "cypress run",
     "clean": "rm -rf dist && mkdir dist && mkdir dist/schema",
     "cleanFull": "rm -rf dist && rm -rf node_modules && rm -rf package-lock.json && mkdir dist && mkdir dist/schema",
-    "cypress": "cypress run --spec cypress/e2e/user-test.cy.js",
-    "lint": "npx prettier . --write"
+    "cypress": "cypress run --spec cypress/e2e/recommendation-test.cy.js",
+    "lint": "npx prettier . --write",
+    "pop": "node ./dist/src/technigala/main.js",
+    "destroy": "node ./dist/src/technigala/clear.js"
   },
   "compilerOptions": {
     "typeRoots": [
