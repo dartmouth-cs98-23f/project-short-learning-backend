@@ -9,6 +9,9 @@ const watchHistoryRouter = Router()
  *  - See src/models/watch_history_models.ts for the schema
  *
  * @pathparam none
+ * 
+ * @queryparam date.gt - get watch history with date greater than this date
+ * @queryparam date.lt - get watch history with date less than this date
  *
  * @returns a list of json objects with the watch history of all videos
  *
@@ -18,13 +21,12 @@ const watchHistoryRouter = Router()
  */
 watchHistoryRouter.get('/watchhistory', requireAuth, async (req, res) => {
   try {
-    const watchHistory = await WatchHistory.getWatchHistories(req.user)
-    console.log(watchHistory)
-    res.status(200).json(watchHistory)
+    const watchHistory = await WatchHistory.getWatchHistories(req.user, req.query);
+    res.status(200).json(watchHistory);
   } catch (error) {
-    res.status(422).json({ error: error.message })
+    res.status(422).json({ error: error.message });
   }
-})
+});
 
 /**
  * GET request to get specific video watch request

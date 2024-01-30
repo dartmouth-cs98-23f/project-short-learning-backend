@@ -18,7 +18,7 @@ const dashboardRouter = Router();
  */
 dashboardRouter.get('/dashboard', requireAuth, async (req, res) => {
   try {
-    const dashboardData = await Dashbooard.getDashboardData(req.user);
+    const dashboardData = await Dashbooard.getDashboardData(req.user, req.query);
     return res.json(dashboardData);
   } catch (error) {
     res.status(422).json({ error: error.message });

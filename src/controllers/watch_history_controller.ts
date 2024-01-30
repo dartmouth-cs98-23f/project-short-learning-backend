@@ -1,13 +1,30 @@
 import WatchHistory from "../models/watch_history_models";
 
-export const getWatchHistories = async (user) => {
+export const getWatchHistories = async (user, queryParameters) => {
   try {
-    const watchHistory = await WatchHistory.find({ userId: user.id }, { _id: 0, __v: 0 }, { sort: { date: -1 } });
+    const { 'date.gt': dateGt, 'date.lt': dateLt } = queryParameters;
+
+    let query: any = { userId: user.id };
+
+    const dateFilter: { $gte?: Date; $lt?: Date } = {
+      ...(dateGt ? { $gte: new Date(dateGt) } : {}),
+      ...(dateLt ? { $lt: new Date(dateLt) } : {}),
+    };
+
+    if (dateGt || dateLt) {
+      query.date = dateFilter;
+    }
+
+    console.log(query);
+
+    const watchHistory = await WatchHistory.find(query, { _id: 0, __v: 0 }, { sort: { date: -1 } });
+
     return watchHistory;
   } catch (error) {
     throw new Error(`Error getting watch history: ${error}`);
   }
 };
+
 
 export const getWatchHistory = async (user, { videoId }) => {
   try {
