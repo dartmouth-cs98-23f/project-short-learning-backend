@@ -21,3 +21,8 @@ node_modules/
 
 # Miscellaneous
 .DS_Store
+
+clips
+
+# Technigala
+src/utils/topicToVideos.ts

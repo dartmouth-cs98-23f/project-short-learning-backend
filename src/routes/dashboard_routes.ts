@@ -10,6 +10,9 @@ const dashboardRouter = Router();
  *
  * @pathparam none
  *
+ * @queryparam date.gt - get watch history with date greater than this date
+ * @queryparam date.lt - get watch history with date less than this date
+ * 
  * @returns a json object with the dashboard data
  *
  * @errors 200 if success
