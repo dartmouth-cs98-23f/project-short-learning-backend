@@ -25,44 +25,48 @@ export const getVideoById = async (req: Request, res: Response) => {
 
 export const createVideo = async (req: Request, res: Response) => {
   const title = req.body.title
-  const clipTitles = req.body.clipTitles
+  const clipTitles = req.body.clipTitles || []
   const description = req.body.description
-  const clipDescriptions = req.body.clipDescriptions
+  const clipDescriptions = req.body.clipDescriptions || []
+  const youtubeURL = req.body.youtubeURL
   const uploader = req.body.uploader
   const duration = req.body.duration
-  const clipDurations = req.body.clipDurations
+  const clipDurations = req.body.clipDurations || []
   const thumbnailURL = req.body.thumbnailURL
-  const clipThumbnailURLs = req.body.clipThumbnailURLs
-  const clipLinks: string[] = req.body.clipLinks
+  const clipThumbnailURLs = req.body.clipThumbnailURLs || []
+  const clipLinks: string[] = req.body.clipLinks || []
 
   const clipArray = [
     clipTitles,
     clipDescriptions,
     clipDurations,
     clipThumbnailURLs,
-    clipLinks
+    clipLinks,
   ]
 
   if (!title) {
     return res.status(422).json({ message: 'Missing title parameter' })
-  } else if (!uploader) {
+  } /* else if (!uploader) {
     return res.status(422).json({ message: 'Missing uploader parameter' })
-  } else if (!duration) {
+  } */ else if (!duration) {
     return res.status(422).json({ message: 'Missing duration parameter' })
   } else if (!thumbnailURL) {
     return res.status(422).json({ message: 'Missing thumbnailURL parameter' })
   } else if (!clipLinks) {
     return res.status(422).json({ message: 'Missing clipLinks parameter' })
   } else if (
-    clipArray.some((clipArray) => clipArray.length !== clipLinks.length)
+    clipArray && clipArray.some((clipArray) => clipArray.length !== clipLinks.length &&
+    clipArray.length !== clipTitles.length &&
+    clipArray.length !== clipDescriptions.length &&
+    clipArray.length !== clipDurations.length &&
+    clipArray.length !== clipThumbnailURLs.length
+    )
   ) {
     return res
       .status(422)
       .json({ message: 'Some clip array has a different length' })
-  } else if (clipTitles.length == 0) {
-    return res.status(422).json({ message: 'Some clip array is empty.' })
   }
-
+ 
   // TOOD: Confirm if clips exist in S3
   // TODO: Confirm thumbnailURL exists in S3
 
@@ -70,6 +74,7 @@ export const createVideo = async (req: Request, res: Response) => {
   const videoMetadata = await VideoMetadata.create({
     title: title,
     description: description,
+    youtubeURL: youtubeURL,
     uploadDate: new Date(),
     uploader: uploader,
     duration: duration,
@@ -84,11 +89,13 @@ export const createVideo = async (req: Request, res: Response) => {
 
   var clipIds: string[] = []
   // Create clips objects for each clip url
+
   for (var i = 0; i < clipLinks.length; i++) {
     const clip = {
       videoId: videoId,
       title: clipTitles[i],
       description: clipDescriptions[i],
+      youtubeURL: youtubeURL,
       uploadDate: new Date(),
       uploader: uploader,
       duration: clipDurations[i],

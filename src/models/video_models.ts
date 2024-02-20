@@ -4,6 +4,7 @@ import { arrayHasNoDuplicates } from '../utils/schema_validators'
 export interface VideoMetadataDocument extends Document {
   title: string
   description: string
+  youtubeURL: string
   uploadDate: Date
   uploader: mongoose.Types.ObjectId // userID
   duration: number // Seconds
@@ -19,6 +20,7 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
+    youtubeURL: { type: String, required: false},
     uploadDate: { type: Date, required: true },
     uploader: { type: Schema.Types.ObjectId, required: false },
     duration: { type: Number, required: true },
