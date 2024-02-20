@@ -2,10 +2,23 @@ import mongoose from 'mongoose';
 import VideoAffinity from '../models/video_affinity_model'
 import WatchHistory from "../models/watch_history_models"
 
-export const getDashboardData = async (user) => {
+export const getDashboardData = async (user, queryParameters) => {
   try {
     // Loop through all of the videos in the watch history and get the video affinity for each video
-    const watchHistory = await WatchHistory.find({ userId: user.id }, { id: 0, _id: 0, __v: 0 }, { sort: { date: -1 } });
+    const { 'date.gt': dateGt, 'date.lt': dateLt } = queryParameters;
+
+    let query: any = { userId: user.id };
+
+    const dateFilter: { $gte?: Date; $lt?: Date } = {
+      ...(dateGt ? { $gte: new Date(dateGt) } : {}),
+      ...(dateLt ? { $lt: new Date(dateLt) } : {}),
+    };
+
+    if (dateGt || dateLt) {
+      query.date = dateFilter;
+    }
+
+    const watchHistory = await WatchHistory.find(query, { _id: 0, __v: 0 }, { sort: { date: -1 } });
 
     const videoAffinity = []
     for (const video of watchHistory) {
