@@ -14,6 +14,8 @@ export interface VideoMetadataDocument extends Document {
   views: mongoose.Types.ObjectId[] // Set of unique userIDs
   likes: mongoose.Types.ObjectId[] // Set of unique userIDs
   dislikes: mongoose.Types.ObjectId[] // Set of unique userIDs
+  isVectorized: boolean
+  isClipped: boolean
 }
 
 const videoMetadataSchema = new Schema<VideoMetadataDocument>(
@@ -49,7 +51,9 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
       type: [Schema.Types.ObjectId],
       required: true,
       validate: [arrayHasNoDuplicates, 'Duplicate values not allowed.']
-    }
+    },
+    isVectorized: { type: Boolean, required: false },
+    isClipped: { type: Boolean, required: false }
   },
   { timestamps: true, collection: 'video_metadata' }
 )
