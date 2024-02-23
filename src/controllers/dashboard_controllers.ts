@@ -1,11 +1,13 @@
-import mongoose from 'mongoose';
 import VideoAffinity from '../models/video_affinity_model'
 import WatchHistory from "../models/watch_history_models"
+import UserModel from "../models/user_model"
 
 export const getDashboardData = async (user, queryParameters) => {
   try {
     // Loop through all of the videos in the watch history and get the video affinity for each video
-    const { 'date.gt': dateGt, 'date.lt': dateLt } = queryParameters;
+    const { 'date.gt': dateGt, 'date.lt': dateLt, limit: queryLimit } = queryParameters;
+
+    const limit = queryLimit ? parseInt(queryLimit) : 500;
 
     let query: any = { userId: user.id };
 
@@ -18,56 +20,46 @@ export const getDashboardData = async (user, queryParameters) => {
       query.date = dateFilter;
     }
 
-    const watchHistory = await WatchHistory.find(query, { _id: 0, __v: 0 }, { sort: { date: -1 } });
+    const watchHistory = await WatchHistory.find(query, { _id: 0, __v: 0 }, { sort: { date: -1 }, limit: limit });
 
     const videoAffinity = []
     for (const video of watchHistory) {
       const videoAffinityData = await VideoAffinity.findOne({ videoId: video.videoId })
       videoAffinity.push(videoAffinityData)
     }
-    console.log(videoAffinity)
     
     // Get the affinity for each topic/subtopic and normalize it by the number of videos to 1
     const topicAffinity = new Map()
-    const subtopicAffinity = new Map()
-    let totalTopicAffinity = 0
-    let totalSubtopicAffinity = 0
+
     for (const video of videoAffinity) {
-      for (const [key, value] of video.affinities) {
-        const [topic, subtopic] = key.split('/')
+      for (const topic of video.affinities) {
         if (topicAffinity.has(topic)) {
-          topicAffinity.set(topic, topicAffinity.get(topic) + value)
+          topicAffinity.set(topic, topicAffinity.get(topic) + 1)
         } else {
-          topicAffinity.set(topic, value)
+          topicAffinity.set(topic, 1)
         }
-        if (subtopicAffinity.has(subtopic)) {
-          subtopicAffinity.set(subtopic, subtopicAffinity.get(subtopic) + value)
-        } else {
-          subtopicAffinity.set(subtopic, value)
-        }
-        totalSubtopicAffinity += value
-        totalTopicAffinity += value
       }
     }
 
-    // Normalize the affinity for all the topics so they sum up to 1
-    const topicAffinityNormalized = {}
-    const subtopicAffinityNormalized = {}
-
-    for (const [topic, value] of topicAffinity) {
-    topicAffinityNormalized[topic] = value / totalTopicAffinity
-    }
-
-    for (const [subtopic, value] of subtopicAffinity) {
-    subtopicAffinityNormalized[subtopic] = value / totalSubtopicAffinity
-    }
-
     return {
-      topicAffinity: topicAffinityNormalized,
-      subtopicAffinity: subtopicAffinityNormalized
+      topicAffinity
     }
 
   } catch (error) {
     throw new Error(`Get dashboard data error: ${error}`)
+  }
+}
+
+export const adminGetDashboardData = async ({ userId }, query) => {
+  try {
+    const user = await UserModel.findById(userId);
+
+    if(!user) {
+      throw new Error('User not found');
+    }
+
+    return getDashboardData(user, query);
+  } catch (error) {
+    throw new Error(`Error getting watch history: ${error}`);
   }
 }

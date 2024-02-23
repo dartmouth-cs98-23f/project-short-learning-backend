@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import * as WatchHistory from '../controllers/watch_history_controller'
-import { requireAuth } from '../services/passport'
+import { requireAuth, requireAdmin } from '../services/passport'
 
 const watchHistoryRouter = Router()
 
@@ -12,6 +12,7 @@ const watchHistoryRouter = Router()
  * 
  * @queryparam date.gt - get watch history with date greater than this date
  * @queryparam date.lt - get watch history with date less than this date
+ * @queryparam limit - limit the number of watch history returned
  *
  * @returns a list of json objects with the watch history of all videos
  *
@@ -115,6 +116,33 @@ watchHistoryRouter.delete('/watchhistory', requireAuth, async (req, res) => {
     res.status(422).json({ error: error.message })
   }
 })
+
+/**
+ * GET request to get full video watch history of any usser by admin
+ *  - See src/models/watch_history_models.ts for the schema
+ *
+ * @pathparam none
+ * 
+ * @bodyparam userId - the user id to get the watch history for
+ * 
+ * @queryparam date.gt - get watch history with date greater than this date
+ * @queryparam date.lt - get watch history with date less than this date
+ * @queryparam limit - limit the number of watch history returned
+ *
+ * @returns a list of json objects with the watch history of all videos
+ *
+ * @errors 200 if success
+ *         422 if no watch history found
+ *         500 if server error
+ */
+watchHistoryRouter.get('/watchhistory/admin', requireAdmin, async (req, res) => {
+  try {
+    const watchHistory = await WatchHistory.adminGetWatchHistories(req.body, req.query);
+    res.status(200).json(watchHistory);
+  } catch (error) {
+    res.status(422).json({ error: error.message });
+  }
+});
 
 export default watchHistoryRouter
 

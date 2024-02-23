@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requireAuth } from '../services/passport'
+import { requireAuth, requireAdmin } from '../services/passport'
 import * as UserAffinity from '../controllers/user_affinity_controller'
 
 const router = Router()
@@ -108,6 +108,30 @@ router.delete('/user/affinities/', requireAuth, async (req, res) => {
   try {
     const affinity = await UserAffinity.deleteUserAffinities(req.user)
     res.json(affinity)
+  } catch (error) {
+    res.status(422).send({ error: error.toString() })
+  }
+})
+
+/**
+ * GET request to get user affinities by admin
+ * - See src/models/user_affinity_model.ts for the UserAffinity schema
+ *
+ * @headerparam Authorization is the user's token
+ *
+ * @bodyparam userId // the user id to get the affinities for
+ *
+ * @returns userAffinity // the user affinity of the user
+ *
+ * @errors
+ *         401 // if unauthorized
+ *         422 // if affinities is invalid
+ *         500 // if server error
+ */
+router.get('/user/affinities/admin', requireAdmin, async (req, res) => {
+  try {
+    const affinities = await UserAffinity.adminGetUserAffinities(req.body)
+    res.json(affinities)
   } catch (error) {
     res.status(422).send({ error: error.toString() })
   }
