@@ -128,7 +128,7 @@ router.delete('/user/affinities/', requireAuth, async (req, res) => {
  *         422 // if affinities is invalid
  *         500 // if server error
  */
-router.get('/user/admin/affinities', requireAdmin, async (req, res) => {
+router.get('/user/affinities/admin', requireAdmin, async (req, res) => {
   try {
     const affinities = await UserAffinity.adminGetUserAffinities(req.body)
     res.json(affinities)

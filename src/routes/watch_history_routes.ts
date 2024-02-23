@@ -135,7 +135,7 @@ watchHistoryRouter.delete('/watchhistory', requireAuth, async (req, res) => {
  *         422 if no watch history found
  *         500 if server error
  */
-watchHistoryRouter.get('/watchhistory', requireAdmin, async (req, res) => {
+watchHistoryRouter.get('/watchhistory/admin', requireAdmin, async (req, res) => {
   try {
     const watchHistory = await WatchHistory.adminGetWatchHistories(req.body, req.query);
     res.status(200).json(watchHistory);
