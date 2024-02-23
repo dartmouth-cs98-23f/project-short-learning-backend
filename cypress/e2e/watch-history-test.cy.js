@@ -177,6 +177,21 @@ describe('Watch History Test', () => {
     })
   });
 
+  it('Getting watch history', () => {
+    cy.request({
+      method: 'GET',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/watchhistory?limit=2`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.lengthOf(2)
+      expect(response.body[0]).to.have.property('videoId')
+      expect(response.body[0]).to.have.property('date')
+    })
+  });
+
   it('Getting watch history of a specific video', () => {
     cy.request({
       method: 'GET',
@@ -257,7 +272,8 @@ describe('Watch History Test', () => {
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('topicAffinity')
-      expect(Object.keys(response.body.topicAffinity)).to.have.lengthOf(4)
+      const topicAffinityKeys = Object.keys(response.body.topicAffinity);
+      expect(topicAffinityKeys).to.have.lengthOf(4);
       expect(response.body.topicAffinity[1]).to.eq(3)
       expect(response.body.topicAffinity[6]).to.eq(2)
       expect(response.body.topicAffinity[8]).to.eq(1)

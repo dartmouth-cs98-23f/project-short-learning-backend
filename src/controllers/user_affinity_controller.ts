@@ -88,11 +88,11 @@ export const deleteUserAffinities = async (user) => {
 
 export const adminGetUserAffinities = async ({ userId }) => {
   try {
-    const userAffinities = await UserModel.findById(userId);
-    if (!userAffinities) {
+    const user = await UserModel.findById(userId);
+    if (!user) {
       throw new Error('User not found')
     }
-    getUserAffinities(userAffinities);
+    return getUserAffinities(user);
   } catch (error) {
     throw new Error(`Get user affinities with admin permissions error: ${error}`)
   }

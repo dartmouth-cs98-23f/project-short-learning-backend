@@ -1,11 +1,13 @@
-import mongoose from 'mongoose';
 import VideoAffinity from '../models/video_affinity_model'
 import WatchHistory from "../models/watch_history_models"
+import UserModel from "../models/user_model"
 
 export const getDashboardData = async (user, queryParameters) => {
   try {
     // Loop through all of the videos in the watch history and get the video affinity for each video
-    const { 'date.gt': dateGt, 'date.lt': dateLt } = queryParameters;
+    const { 'date.gt': dateGt, 'date.lt': dateLt, limit: queryLimit } = queryParameters;
+
+    const limit = queryLimit ? parseInt(queryLimit) : 500;
 
     let query: any = { userId: user.id };
 
@@ -18,7 +20,7 @@ export const getDashboardData = async (user, queryParameters) => {
       query.date = dateFilter;
     }
 
-    const watchHistory = await WatchHistory.find(query, { _id: 0, __v: 0 }, { sort: { date: -1 } });
+    const watchHistory = await WatchHistory.find(query, { _id: 0, __v: 0 }, { sort: { date: -1 }, limit: limit });
 
     const videoAffinity = []
     for (const video of watchHistory) {
@@ -45,5 +47,19 @@ export const getDashboardData = async (user, queryParameters) => {
 
   } catch (error) {
     throw new Error(`Get dashboard data error: ${error}`)
+  }
+}
+
+export const adminGetDashboardData = async ({ userId }, query) => {
+  try {
+    const user = await UserModel.findById(userId);
+
+    if(!user) {
+      throw new Error('User not found');
+    }
+
+    return getDashboardData(user, query);
+  } catch (error) {
+    throw new Error(`Error getting watch history: ${error}`);
   }
 }
