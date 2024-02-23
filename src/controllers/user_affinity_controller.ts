@@ -1,11 +1,11 @@
 import UserAffinity from '../models/user_affinity_model'
-import { logger } from '../services/logger'
+import UserModel from '../models/user_model'
 
 // import the list of strings from src\utils\affinityTruthTable and make it a truth table for the affinity topics
 const fs = require('fs')
 
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8')
-const affinitiesTruthTable = fileContent.split(/[\r\n]+/)
+const affinitiesTruthTable = fileContent.split(/[\r\n]+/).map(line => parseInt(line.trim(), 10)).filter(Number.isInteger);
 
 export const createUserAffinities = async (user, { affinities }) => {
   try {
@@ -18,15 +18,19 @@ export const createUserAffinities = async (user, { affinities }) => {
 
     const userAffinity = new UserAffinity({
       userId: user._id,
-      affinities: new Map()
+      affinities: []
     })
 
-    affinities.forEach(({ topic, subTopic, affinityValue }) => {
-      if (!affinitiesTruthTable.includes(`${topic}/${subTopic}`)) {
-        throw new Error(`Invalid topic/subtopic: ${topic}/${subTopic}`)
+    const newAffinities = []
+    
+    affinities.forEach((topic) => {
+      if (!affinitiesTruthTable.includes(topic)) {
+        throw new Error(`Invalid topic ID: ${topic}`)
       }
-      userAffinity.affinities.set(`${topic}/${subTopic}`, affinityValue)
+      newAffinities.push(topic);
     })
+
+    userAffinity.affinities = newAffinities
 
     const savedUserAffinity = await userAffinity.save()
     return savedUserAffinity
@@ -51,12 +55,16 @@ export const updateUserAffinities = async (user, { affinities }) => {
       throw new Error('User affinities not found')
     }
     // Can only edit affinity value after creation
-    affinities.forEach(({ topic, subTopic, affinityValue }) => {
-      if (!affinitiesTruthTable.includes(`${topic}/${subTopic}`)) {
-        throw new Error(`Invalid topic/subtopic: ${topic}/${subTopic}`)
+    const newAffinities = []
+
+    affinities.forEach((topic) => {
+      if (!affinitiesTruthTable.includes(topic)) {
+        throw new Error(`Invalid topic ID: ${topic}`)
       }
-      userAffinity.affinities.set(`${topic}/${subTopic}`, affinityValue)
+      newAffinities.push(topic);
     })
+
+    userAffinity.affinities = newAffinities
 
     const savedUserAffinity = await userAffinity.save()
     return savedUserAffinity
@@ -75,5 +83,17 @@ export const deleteUserAffinities = async (user) => {
     return true
   } catch (error) {
     throw new Error(`Delete user affinities error: ${error}`)
+  }
+}
+
+export const adminGetUserAffinities = async ({ userId }) => {
+  try {
+    const userAffinities = await UserModel.findById(userId);
+    if (!userAffinities) {
+      throw new Error('User not found')
+    }
+    getUserAffinities(userAffinities);
+  } catch (error) {
+    throw new Error(`Get user affinities with admin permissions error: ${error}`)
   }
 }

@@ -8,9 +8,12 @@ const VideoAffinitySchema = new Schema(
       required: true
     },
     affinities: {
-      type: Map,
-      of: Schema.Types.Number
-    }
+      type: [Number],
+      set: function(values) {
+        const uniqueValues = [...new Set(values)];
+        return uniqueValues;
+      }
+    },
   },
   {
     toObject: { virtuals: true },

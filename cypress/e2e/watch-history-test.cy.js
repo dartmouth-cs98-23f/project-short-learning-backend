@@ -214,18 +214,7 @@ describe('Watch History Test', () => {
       },
       url: `${URL}/videos/${videoId1}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Hardware',
-            affinityValue: 0.95
-          },
-          {
-            topic: 'Technology',
-            subTopic: 'Artificial Intelligence',
-            affinityValue: 0.2
-          }
-        ]
+        affinities: [1, 6, 8]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -238,13 +227,7 @@ describe('Watch History Test', () => {
       },
       url: `${URL}/videos/${videoId2}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Artificial Intelligence',
-            affinityValue: 0.55
-          }
-        ]
+        affinities: [1, 6, 70]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -257,13 +240,7 @@ describe('Watch History Test', () => {
       },
       url: `${URL}/videos/${videoId3}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Cybersecurity',
-            affinityValue: 0.3
-          }
-        ]
+        affinities: [1]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -280,22 +257,11 @@ describe('Watch History Test', () => {
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('topicAffinity')
-      expect(response.body).to.have.property('subtopicAffinity')
-      const threshold = 0.0001;
-        
-      let topicAffinitySum = 0;
-      for (const key in response.body.topicAffinity) {
-        topicAffinitySum += response.body.topicAffinity[key];
-      }
-      expect(Math.abs(topicAffinitySum - 1)).to.be.lessThan(threshold);
-
-      // Check if subtopicAffinity sums up to 1
-      let subtopicAffinitySum = 0;
-      for (const key in response.body.subtopicAffinity) {
-        subtopicAffinitySum += response.body.subtopicAffinity[key];
-      }
-      expect(Math.abs(subtopicAffinitySum - 1)).to.be.lessThan(threshold);
-
+      expect(Object.keys(response.body.topicAffinity)).to.have.lengthOf(4)
+      expect(response.body.topicAffinity[1]).to.eq(3)
+      expect(response.body.topicAffinity[6]).to.eq(2)
+      expect(response.body.topicAffinity[8]).to.eq(1)
+      expect(response.body.topicAffinity[70]).to.eq(1)
     })
   })
 

@@ -33,13 +33,7 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Artificial Intelligence',
-            affinityValue: 0.1
-          }
-        ]
+        affinities: [1, 6, 8]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -57,13 +51,7 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Machine Learning',
-            affinityValue: 0.1
-          }
-        ]
+        affinities: [500, 81, 9]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
@@ -79,37 +67,7 @@ describe('User Affinity Test', () => {
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
-      expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(
-        response.body.affinities['Technology/Artificial Intelligence']
-      ).to.have.equal(0.1)
-    })
-  })
-
-  it('Updating affinities for user by updating a specific affinity', () => {
-    cy.request({
-      method: 'PUT',
-      url: `${URL}/user/affinities/`,
-      headers: {
-        Authorization: token
-      },
-      body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Artificial Intelligence',
-            affinityValue: 0.2
-          }
-        ]
-      }
-    }).then((response) => {
-      console.log(response.body)
-      expect(response.status).to.eq(200)
-      expect(response.body).to.have.property('affinities')
-      expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(
-        response.body.affinities['Technology/Artificial Intelligence']
-      ).to.eq(0.2)
+      expect(Object.values(response.body.affinities).length).to.eq(3)
     })
   })
 
@@ -121,19 +79,12 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Hardware',
-            affinityValue: 0.95
-          }
-        ]
+        affinities: [1, 6, 8, 9]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
-      expect(Object.values(response.body.affinities).length).to.eq(2)
-      expect(response.body.affinities['Technology/Hardware']).to.eq(0.95)
+      expect(Object.values(response.body.affinities).length).to.eq(4)
     })
   })
 
@@ -146,13 +97,7 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Banana',
-            affinityValue: 0.95
-          }
-        ]
+        affinities: [1, 6, 8, 9, 500]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
@@ -237,13 +182,7 @@ describe('Video Affinity Test', () => {
       method: 'POST',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Artificial Intelligence',
-            affinityValue: 0.1
-          }
-        ]
+        affinities: [1, 6, 8]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -258,13 +197,7 @@ describe('Video Affinity Test', () => {
       method: 'POST',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Machine Learning',
-            affinityValue: 0.1
-          }
-        ]
+        affinities: [1, 6, 800]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
@@ -277,33 +210,7 @@ describe('Video Affinity Test', () => {
       url: `${URL}/videos/${videoId}/affinities`
     }).then((response) => {
       expect(response.status).to.eq(200)
-      expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(
-        response.body.affinities['Technology/Artificial Intelligence']
-      ).to.have.equal(0.1)
-    })
-  })
-
-  it('Updating affinities for video by updating a specific affinity', () => {
-    cy.request({
-      method: 'PUT',
-      url: `${URL}/videos/${videoId}/affinities`,
-      body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Artificial Intelligence',
-            affinityValue: 0.2
-          }
-        ]
-      }
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-      expect(response.body).to.have.property('affinities')
-      expect(Object.values(response.body.affinities).length).to.eq(1)
-      expect(
-        response.body.affinities['Technology/Artificial Intelligence']
-      ).to.eq(0.2)
+      expect(Object.values(response.body.affinities).length).to.eq(3)
     })
   })
 
@@ -312,19 +219,12 @@ describe('Video Affinity Test', () => {
       method: 'PUT',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Hardware',
-            affinityValue: 0.95
-          }
-        ]
+        affinities: [1, 6, 8, 9]
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
-      expect(Object.values(response.body.affinities).length).to.eq(2)
-      expect(response.body.affinities['Technology/Hardware']).to.eq(0.95)
+      expect(Object.values(response.body.affinities).length).to.eq(4)
     })
   })
 
@@ -334,13 +234,7 @@ describe('Video Affinity Test', () => {
       method: 'PUT',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [
-          {
-            topic: 'Technology',
-            subTopic: 'Banana',
-            affinityValue: 0.95
-          }
-        ]
+        affinities: [1, 6, 8, 9, 500]
       }
     }).then((response) => {
       expect(response.status).to.eq(422)

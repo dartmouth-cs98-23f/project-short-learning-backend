@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requireAuth } from '../services/passport'
+import { requireAuth, requireAdmin } from '../services/passport'
 import * as UserAffinity from '../controllers/user_affinity_controller'
 
 const router = Router()
@@ -108,6 +108,15 @@ router.delete('/user/affinities/', requireAuth, async (req, res) => {
   try {
     const affinity = await UserAffinity.deleteUserAffinities(req.user)
     res.json(affinity)
+  } catch (error) {
+    res.status(422).send({ error: error.toString() })
+  }
+})
+
+router.get('/user/admin/affinities', requireAdmin, async (req, res) => {
+  try {
+    const affinities = await UserAffinity.adminGetUserAffinities(req.body)
+    res.json(affinities)
   } catch (error) {
     res.status(422).send({ error: error.toString() })
   }

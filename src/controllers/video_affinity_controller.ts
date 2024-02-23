@@ -5,7 +5,7 @@ import { VideoMetadata } from '../models/video_models'
 const fs = require('fs')
 
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8')
-const affinitiesTruthTable = fileContent.split(/[\r\n]+/)
+const affinitiesTruthTable = fileContent.split(/[\r\n]+/).map(line => parseInt(line.trim(), 10)).filter(Number.isInteger);
 
 export const createVideoAffinity = async (videoId, { affinities }) => {
   try {
@@ -24,15 +24,19 @@ export const createVideoAffinity = async (videoId, { affinities }) => {
 
     const videoAffinity = new VideoAffinity({
       videoId: video._id,
-      affinities: new Map()
+      affinities: []
     })
 
-    affinities.forEach(({ topic, subTopic, affinityValue }) => {
-      if (!affinitiesTruthTable.includes(`${topic}/${subTopic}`)) {
-        throw new Error(`Invalid topic/subtopic: ${topic}/${subTopic}`)
+    const newAffinities = []
+    
+    affinities.forEach((topic) => {
+      if (!affinitiesTruthTable.includes(topic)) {
+        throw new Error(`Invalid topic ID: ${topic}`)
       }
-      videoAffinity.affinities.set(`${topic}/${subTopic}`, affinityValue)
+      newAffinities.push(topic)
     })
+
+    videoAffinity.affinities = newAffinities
 
     const savedVideoAffinity = await videoAffinity.save()
 
@@ -69,14 +73,17 @@ export const updateVideoAffinities = async (videoId, { affinities }) => {
       throw new Error('Video affinities does not exists')
     }
 
-    // Can only edit affinity value after creation
-    affinities.forEach(({ topic, subTopic, affinityValue }) => {
-      if (!affinitiesTruthTable.includes(`${topic}/${subTopic}`)) {
-        throw new Error(`Invalid topic/subtopic: ${topic}/${subTopic}`)
+    const newAffinities = []
+
+    affinities.forEach((topic) => {
+      if (!affinitiesTruthTable.includes(topic)) {
+        throw new Error(`Invalid topic ID: ${topic}`)
       }
-      videoAffinity.affinities.set(`${topic}/${subTopic}`, affinityValue)
+      newAffinities.push(topic)
     })
 
+    videoAffinity.affinities = newAffinities
+  
     const savedVideoAffinity = await videoAffinity.save()
     return savedVideoAffinity
   } catch (error) {

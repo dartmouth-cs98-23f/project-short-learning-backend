@@ -25,46 +25,22 @@ export const getDashboardData = async (user, queryParameters) => {
       const videoAffinityData = await VideoAffinity.findOne({ videoId: video.videoId })
       videoAffinity.push(videoAffinityData)
     }
-    console.log(videoAffinity)
     
     // Get the affinity for each topic/subtopic and normalize it by the number of videos to 1
     const topicAffinity = new Map()
-    const subtopicAffinity = new Map()
-    let totalTopicAffinity = 0
-    let totalSubtopicAffinity = 0
+
     for (const video of videoAffinity) {
-      for (const [key, value] of video.affinities) {
-        const [topic, subtopic] = key.split('/')
+      for (const topic of video.affinities) {
         if (topicAffinity.has(topic)) {
-          topicAffinity.set(topic, topicAffinity.get(topic) + value)
+          topicAffinity.set(topic, topicAffinity.get(topic) + 1)
         } else {
-          topicAffinity.set(topic, value)
+          topicAffinity.set(topic, 1)
         }
-        if (subtopicAffinity.has(subtopic)) {
-          subtopicAffinity.set(subtopic, subtopicAffinity.get(subtopic) + value)
-        } else {
-          subtopicAffinity.set(subtopic, value)
-        }
-        totalSubtopicAffinity += value
-        totalTopicAffinity += value
       }
     }
 
-    // Normalize the affinity for all the topics so they sum up to 1
-    const topicAffinityNormalized = {}
-    const subtopicAffinityNormalized = {}
-
-    for (const [topic, value] of topicAffinity) {
-    topicAffinityNormalized[topic] = value / totalTopicAffinity
-    }
-
-    for (const [subtopic, value] of subtopicAffinity) {
-    subtopicAffinityNormalized[subtopic] = value / totalSubtopicAffinity
-    }
-
     return {
-      topicAffinity: topicAffinityNormalized,
-      subtopicAffinity: subtopicAffinityNormalized
+      topicAffinity
     }
 
   } catch (error) {
