@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@getbrevo/brevo": "^1.0.1",
+    "@pinecone-database/pinecone": "^2.0.1",
     "algoliasearch": "^4.22.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
