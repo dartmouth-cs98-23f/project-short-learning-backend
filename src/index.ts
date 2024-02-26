@@ -13,6 +13,7 @@ import topicRouter from './routes/topics_routes'
 import watchHistoryRouter from './routes/watch_history_routes'
 import dashboardRouter from './routes/dashboard_routes'
 import searchRouter from './routes/search_routes'
+import vectorizedRecRouter from './routes/vectorized-recommendations-routes'
 
 const app = express()
 const port: Number = 3000
@@ -49,5 +50,6 @@ app.use('/api', recommendationRouter)
 app.use('/api', topicRouter)
 app.use('/api', dashboardRouter)
 app.use('/api', searchRouter)
+app.use('/api', vectorizedRecRouter)
 
 runApp()
