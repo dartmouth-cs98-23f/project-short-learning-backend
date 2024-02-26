@@ -16,11 +16,11 @@ export interface RankingTopicMetadata {
 
 
 export interface VideoRecommendation {
-  userId: Types.ObjectId
+  userId: string
   videos: RankingVideoMetadata[]
 }
 
 export interface TopicRecommendation {
-  userId: Types.ObjectId
+  userId: string
   topics: TopicMetadataDocument[]
 }
