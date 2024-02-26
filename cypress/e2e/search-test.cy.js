@@ -5,9 +5,6 @@ describe('Search API Tests', () => {
     cy.request({
       method: 'GET',
       url: `${URL}/search/topics?q=java`,
-      // headers: {
-      //   Authorization: token
-      // }
     }).then((response) => {
         expect(response.status).to.eq(200);
         expect(response.body).to.have.property('results');
@@ -20,9 +17,6 @@ describe('Search API Tests', () => {
     cy.request({
       method: 'GET',
       url: `${URL}/search/videos?q=rust`,
-      // headers: {
-      //   Authorization: token
-      // }
     }).then((response) => {
         expect(response.status).to.eq(200);
         expect(response.body).to.have.property('results');
