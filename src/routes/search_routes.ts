@@ -8,29 +8,34 @@ const searchRouter = Router()
 /**
  * GET /search/videos
  * 
- * @pathparam {string} q - the search query
- */
-searchRouter.get('/search/videos', requireAdmin, async (req: Request, res: Response) => {
-  const query = req.query.q.toString()
-  try {
-    const results = await SearchController.searchTranscript(query)
-    return res.status(200).json({ results: results })
-  } catch (error) {
-    logger.error(error)
-    return res.status(500).json({ error: error })
-  }
-})
-
-/**
- * GET /search/topics
+ * @bodyparam {string} q - the search query
+ * @bodyparam {string} topic - the topic to search for
  * 
- * @pathparam {string} q - the search query
+ * NOTE: It is okay to provide one or the other, but at least one must be provided.
+ * 
+ * if both are provided, the query will be used.
  */
-searchRouter.get('/search/topics', requireAdmin, async (req: Request, res: Response) => {
-  const query = req.query.q.toString()
+searchRouter.get('/search', requireAdmin, async (req: Request, res: Response) => {
+
+  const query = req.query.q?.toString()
+  const topic = req.query.topic?.toString()
+
   try {
-    const results = await SearchController.searchTopics(query)
-    return res.status(200).json({ results: results })
+    let results
+    if (query) {
+      results = await SearchController.searchTranscript(query)
+    }
+    else if (topic) {
+      results = await SearchController.searchTopics(topic)
+    }
+
+    // if results is set, return it
+    if (results) {
+      return res.status(200).json({ results: results })
+    }
+    else {
+      return res.status(400).json({ error: 'No query or topic provided' })
+    }
   } catch (error) {
     logger.error(error)
     return res.status(500).json({ error: error })
