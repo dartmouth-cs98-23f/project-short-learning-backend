@@ -2,6 +2,8 @@
  * Types and models for search endpoints
  */
 
+import { VideoMetadataDocument } from "./video_models"
+
 /**
  * interface for topic search results
  * 
@@ -23,10 +25,11 @@ export interface TopicResult {
  */
 export interface VideoResult {
   videoId: string
-  highlight: string | undefined
+  highlight?: string
   topics: string[]
-  title: string | undefined
-  description: string | undefined
+  title?: string
+  description?: string
+  metadata?: VideoMetadataDocument
 }
 
 /**
