@@ -19,7 +19,7 @@ vectorizedRecRouter.get('/vectorized-recommendations', requireAdmin, async (req:
     return res.status(200).json({ results: results })
   } catch (error) {
     logger.error(error)
-    return res.status(500).json({ error: error })
+    return res.status(500).json({ error: `Video ${videoId} not found` })
   }
 })
 

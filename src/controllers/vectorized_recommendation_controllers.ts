@@ -57,7 +57,7 @@ export const getVideoRecommendations = async (videoId: string, userId: string) =
     });
 
     let videoRecommendation: VideoRecommendation = {
-      userId: userId,
+      userId: userId.length > 0 ? userId : undefined,
       videos: recommendations.matches.map((match) => {
         return {
           videoId: match.id.slice(0, -4),
@@ -74,6 +74,6 @@ export const getVideoRecommendations = async (videoId: string, userId: string) =
   catch (error) {
     logger.error(error);
     console.log(`ERROR: ${JSON.stringify(error)}`)
-    throw new Error(`PINECONE ERROR: ${error}`)
+    throw new Error(error)
   }
 }
