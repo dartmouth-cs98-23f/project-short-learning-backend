@@ -134,7 +134,10 @@ describe('Watch History Test', () => {
       headers: {
         Authorization: token
       },
-      url: `${URL}/watchhistory/${videoId1}`
+      url: `${URL}/watchhistory/${videoId1}`,
+      body: {
+        duration: 10.02,
+      } 
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
@@ -146,7 +149,10 @@ describe('Watch History Test', () => {
       headers: {
         Authorization: token
       },
-      url: `${URL}/watchhistory/${videoId2}`
+      url: `${URL}/watchhistory/${videoId2}`,
+      body: {
+        duration: 10.02,
+      }
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
@@ -156,7 +162,10 @@ describe('Watch History Test', () => {
       headers: {
         Authorization: token
       },
-      url: `${URL}/watchhistory/${videoId3}`
+      url: `${URL}/watchhistory/${videoId3}`,
+      body: {
+        duration: 11.02,
+      }
     }).then((response) => {
       expect(response.status).to.eq(200)
     })

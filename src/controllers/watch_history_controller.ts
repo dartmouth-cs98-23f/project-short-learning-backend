@@ -43,13 +43,15 @@ export const getWatchHistory = async (user, { videoId }) => {
 };
 
 
-export const insertWatchHistory = async (user, { videoId }) => {
+export const insertWatchHistory = async (user, { videoId }, { clipId, duration }) => {
   try {
     const watchHistory = await WatchHistory.findOne({ userId: user.id, videoId: videoId });
 
     if (watchHistory) {
       // Update the date
       watchHistory.date = new Date();
+      watchHistory.duration = duration;
+      watchHistory.clipId = clipId;
       await watchHistory.save();
       return watchHistory;
     }
@@ -58,6 +60,8 @@ export const insertWatchHistory = async (user, { videoId }) => {
       userId: user.id,
       date: new Date(),
       videoId: videoId,
+      duration: duration,
+      clipId: clipId,
     });
 
     await newWatchHistory.save();
