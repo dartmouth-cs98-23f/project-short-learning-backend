@@ -32,7 +32,7 @@ export const getDashboardData = async (user, queryParameters) => {
     const topicAffinity = new Map()
 
     for (const video of videoAffinity) {
-      for (const topic of video.affinities) {
+      for (const topic of video.affinities.keys()) {
         if (topicAffinity.has(topic)) {
           topicAffinity.set(topic, topicAffinity.get(topic) + 1)
         } else {

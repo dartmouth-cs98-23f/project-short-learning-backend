@@ -221,11 +221,16 @@ describe('Watch History Test', () => {
       headers: {
         Authorization: token
       },
+      body: {
+        duration: 2.02,
+      },
       url: `${URL}/watchhistory/${videoId2}`
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('videoId')
       expect(response.body).to.have.property('date')
+      expect(response.body).to.have.property('duration')
+      expect(response.body.duration).to.eq(2.02)
     })
   });
 
@@ -238,7 +243,12 @@ describe('Watch History Test', () => {
       },
       url: `${URL}/videos/${videoId1}/affinities`,
       body: {
-        affinities: [1, 6, 8]
+        affinities: {
+          1: 0.2,
+          6: 0.5,
+          8: 0.3,
+          70: 0.2
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -251,7 +261,10 @@ describe('Watch History Test', () => {
       },
       url: `${URL}/videos/${videoId2}/affinities`,
       body: {
-        affinities: [1, 6, 70]
+        affinities: {
+          1: 0.5,
+          6: 0.3,
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -264,7 +277,9 @@ describe('Watch History Test', () => {
       },
       url: `${URL}/videos/${videoId3}/affinities`,
       body: {
-        affinities: [1]
+        affinities: {
+          1: 1,
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
