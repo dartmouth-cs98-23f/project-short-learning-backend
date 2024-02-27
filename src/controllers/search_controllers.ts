@@ -7,6 +7,7 @@ import { logger } from '../services/logger'
 import { TopicResult, RankedSearchResults, VideoResult } from '../models/search_models'
 
 import algoliasearch from 'algoliasearch'
+import { VideoMetadata } from '../models/video_models'
 
 const appID           = process.env.ALGOLIA_SEARCH_APP_ID
 const apiKey          = process.env.ALGOLIA_SEARCH_API_KEY
@@ -19,10 +20,10 @@ const topicsIndex = client.initIndex(topicsIndexName);
 
 export const searchTranscript = async (query: string): Promise<RankedSearchResults> => {
   try {
-    return index.search(query).then((res) => {
+    return index.search(query).then( async (res) => {
 
-      const topics = accumulateTopics(res.hits)
-      const videos = accumulateVideos(res.hits)
+      let topics = await accumulateTopics(res.hits)
+      let videos = await accumulateVideos(res.hits)
 
       return { videos, topics: topics.slice(0, 10) }
     })
@@ -34,10 +35,10 @@ export const searchTranscript = async (query: string): Promise<RankedSearchResul
 
 export const searchTopics = async (query: string): Promise<RankedSearchResults> => {
   try {
-    return topicsIndex.search(query).then((res) => {
+    return topicsIndex.search(query).then(async (res) => {
 
-      const topics = accumulateTopics(res.hits)
-      const videos = accumulateVideos(res.hits)
+      const topics = await accumulateTopics(res.hits)
+      const videos = await accumulateVideos(res.hits)
 
       return { videos, topics: topics.slice(0, 10) }
     })
@@ -75,13 +76,21 @@ function accumulateTopics(results: any): TopicResult[] {
   return topics
 }
 
-function accumulateVideos (results: any): VideoResult[] {
-  return results.map((hit: any) => ({
-      videoId: hit.objectID,
-      highlight: undefined,
-      topics: hit?.topics,
-      title: hit?.title,
-      description: hit?.description,
-    })
-  )
+async function accumulateVideos(results: any): Promise<VideoResult[]> {
+  const res = await Promise.all(results.map( async (hit: any) => {
+    return await VideoMetadata.findById(hit.objectID)
+      .populate('clips')
+      .exec()
+      .then( (metadata) => {
+        return {
+          videoId: hit.objectID,
+          // highlight: hit._highlightResult,
+          topics: hit?.topics,
+          title: hit?.title,
+          description: hit?.description,
+          metadata: metadata
+        }
+      })
+  }))
+  return res
 }
