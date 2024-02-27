@@ -52,7 +52,7 @@ export const getVideoRecommendations = async (videoId: string, userId: string) =
     // get recommendations for video_id
     const recommendations = await index.query({
       vector: videoVector,
-      topK: 10,
+      topK: 30,
       includeMetadata: true,
     });
 
@@ -60,7 +60,7 @@ export const getVideoRecommendations = async (videoId: string, userId: string) =
       userId: userId,
       videos: recommendations.matches.map((match) => {
         return {
-          videoId: match.id,
+          videoId: match.id.slice(0, -4),
           topics: Array.isArray(match.metadata?.inferenceTopics) ? Array.from(match.metadata.inferenceTopics) : [],
           score: match.score,
         }
