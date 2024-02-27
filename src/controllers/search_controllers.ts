@@ -4,7 +4,7 @@
 
 import { logger } from '../services/logger'
 
-import { SearchResult, RankedSearchResults } from '../models/search_models'
+import { TopicResult, RankedSearchResults, VideoResult } from '../models/search_models'
 
 import algoliasearch from 'algoliasearch'
 
@@ -19,18 +19,13 @@ const topicsIndex = client.initIndex(topicsIndexName);
 
 export const searchTranscript = async (query: string): Promise<RankedSearchResults> => {
   try {
-    const _results = await index.search(query)
+    return index.search(query).then((res) => {
 
-    const results: RankedSearchResults = _results.hits.map((hit: any) => {
-      return {
-        videoId: hit.objectID,
-        highlight: hit?._highlightResult?.transcript?.value,
-        topics: hit?.topics,
-        title: hit?.title,
-        description: hit?.description,
-      }
+      const topics = accumulateTopics(res.hits)
+      const videos = accumulateVideos(res.hits)
+
+      return { videos, topics: topics.slice(0, 10) }
     })
-    return results
   } catch (error) {
     logger.error(error)
     throw new Error(`SEARCH ERROR: ${error}`)
@@ -39,21 +34,54 @@ export const searchTranscript = async (query: string): Promise<RankedSearchResul
 
 export const searchTopics = async (query: string): Promise<RankedSearchResults> => {
   try {
-    const _results = await topicsIndex.search(query)
+    return topicsIndex.search(query).then((res) => {
 
-    const results: RankedSearchResults = _results.hits.map((hit: any) => {
-      return {
-        videoId: hit.objectID,
-        highlight: undefined,
-        topics: hit?.topics,
-        title: hit?.title,
-        description: hit?.description,
-      }
+      const topics = accumulateTopics(res.hits)
+      const videos = accumulateVideos(res.hits)
+
+      return { videos, topics: topics.slice(0, 10) }
     })
-
-    return results
   } catch (error) {
     logger.error(error)
     throw new Error(`SEARCH ERROR: ${error}`)
   }
+}
+
+function accumulateTopics(results: any): TopicResult[] {
+  
+  let _topics = new Map<string, number>()
+
+  results.forEach((result: any) => {
+    result.topics.forEach((topic: any) => {
+      _topics[topic] = _topics[topic] || 0
+      _topics[topic] += 1
+    })
+  })
+
+  let sortedArray = []
+  for (let k in _topics) {
+    const v = _topics[k]
+    sortedArray.push({k, v})
+  }
+
+  sortedArray.sort((a, b) => b.v - a.v)
+
+  let topics: TopicResult[] = sortedArray.map((topic) => {
+    return {
+      topic: topic["k"],
+      score: topic["v"]
+    }
+  })
+  return topics
+}
+
+function accumulateVideos (results: any): VideoResult[] {
+  return results.map((hit: any) => ({
+      videoId: hit.objectID,
+      highlight: undefined,
+      topics: hit?.topics,
+      title: hit?.title,
+      description: hit?.description,
+    })
+  )
 }
