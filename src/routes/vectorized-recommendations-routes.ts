@@ -15,7 +15,7 @@ vectorizedRecRouter.get('/vectorized-recommendations', requireAdmin, async (req:
   const videoId = req.query?.videoId?.toString() || ""
   const userId = req.query?.userId?.toString() || ""
   try {
-    const results = await VectorizedRecControllers.getRecommendations(videoId, userId)
+    const results = await VectorizedRecControllers.getVideoRecommendations(videoId, userId)
     return res.status(200).json({ results: results })
   } catch (error) {
     logger.error(error)
