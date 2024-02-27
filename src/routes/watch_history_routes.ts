@@ -57,6 +57,9 @@ watchHistoryRouter.get('/watchhistory/:videoId', requireAuth, async (req, res) =
  *
  * @pathparam none
  *
+ * @bodyparam clipId - the clip id of the latest clip watched in this video sequence
+ * @bodyparam duration - the duration of the watch history in seconds
+ * 
  * @returns a json object with the new watch history
  *
  * @errors 200 if success
@@ -66,7 +69,7 @@ watchHistoryRouter.get('/watchhistory/:videoId', requireAuth, async (req, res) =
 
 watchHistoryRouter.post('/watchhistory/:videoId', requireAuth, async (req, res) => {
   try {
-    const watchHistory = await WatchHistory.insertWatchHistory(req.user, req.params)
+    const watchHistory = await WatchHistory.insertWatchHistory(req.user, req.params, req.body)
     res.status(200).json(watchHistory)
   } catch (error) {
     res.status(422).json({ error: error.message })

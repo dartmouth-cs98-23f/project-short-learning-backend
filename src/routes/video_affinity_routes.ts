@@ -16,7 +16,7 @@ const videoRouter = Router()
  *
  * @pathparam videoId // the videoId of the video to get affinity for
  *
- * @returns videoAffinity // the video affinity of the video
+ * @returns a json object with video Id, affinities and complexities
  *
  * @errors 422 // if videoId is missing
  *         404 // if video is not found
@@ -40,12 +40,14 @@ videoRouter.get('/videos/:videoId/affinities', async (req, res) => {
  * @pathparam videoId // the videoId of the video to update affinity for
  * @bodyparam affinities // the affinities to update
  *        {
- *           topic: the topic of the affinity to create
- *           subTopic: the subTopic of the affinity to create
- *           value: the value of the affinity to create
+ *           topic: affinity value
+ *        }
+ *        complexities // the complexities to update
+ *        {
+ *          topic: complexity value
  *        }
  *
- * @returns videoAffinity // the updated video affinity of the video
+ * @returns a json object with video Id, affinities and complexities
  *
  * @errors 422 // if videoId or affinities is missing
  *         404 // if video is not found
@@ -70,12 +72,13 @@ videoRouter.post('/videos/:videoId/affinities', async (req, res) => {
  * @pathparam videoId // the videoId of the video to update affinity for
  * @bodyparam affinities // the affinities to update
  *        {
- *           topic: the topic of the affinity to create
- *           subTopic: the subTopic of the affinity to create
- *           value: the value of the affinity to create
+ *          topic: affinity value
  *        }
- *
- * @returns videoAffinity // the updated video affinity of the video
+ *       complexities // the complexities to update
+ *        {
+ *          topic: complexity value
+ *        }
+ * @returns a json object with video Id, affinities and complexities
  *
  * @errors 422 // if videoId or affinities is missing
  *         404 // if video is not found

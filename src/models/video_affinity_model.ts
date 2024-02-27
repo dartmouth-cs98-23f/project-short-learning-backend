@@ -7,13 +7,8 @@ const VideoAffinitySchema = new Schema(
       ref: 'VideoMetadata',
       required: true
     },
-    affinities: {
-      type: [Number],
-      set: function(values) {
-        const uniqueValues = [...new Set(values)];
-        return uniqueValues;
-      }
-    },
+    affinities: { type: Map, of: Number, required: false },
+    complexities: { type: Map, of: Number, required: false },
   },
   {
     toObject: { virtuals: true },
