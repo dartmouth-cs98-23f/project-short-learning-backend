@@ -19,12 +19,14 @@ const router = Router()
  * @headerparam Authorization is the user's token
  * @bodyparam affinities // the list of affinities to update
  *        {
- *           topic: the topic of the affinity to create
- *           subTopic: the subTopic of the affinity to create
- *           value: the value of the affinity to create
+ *           topic: the affinity value
+ *        }
+ *       complexities // the list of complexities to update
+ *        {
+ *           topic: the complexity value
  *        }
  *
- * @returns userAffinity // the user affinity of the user
+ * @returns a json object with user Id, affinities and complexities
  *
  * @errors
  *         401 // if unauthorized
@@ -46,7 +48,7 @@ router.post('/user/affinities', requireAuth, async (req, res) => {
  *
  * @headerparam Authorization is the user's token
  *
- * @returns userAffinity // the user affinity of the user
+ * @returns a json object with user Id, affinities and complexities
  *
  * @errors
  *         401 // if unauthorized
@@ -70,12 +72,14 @@ router.get('/user/affinities', requireAuth, async (req, res) => {
  *
  * @bodyparam affinities // the list of affinities to update
  *        {
- *           topic: the topic of the affinity to create
- *           subTopic: the subTopic of the affinity to create
- *           value: the value of the affinity to create
+ *           topic: the affinity value
+ *        }
+ *       complexities // the list of complexities to update
+ *        {
+ *           topic: the complexity value
  *        }
  *
- * @returns userAffinity // the user affinity of the user
+ * @returns a json object with user Id, affinities and complexities
  *
  * @errors
  *         401 // if unauthorized
@@ -121,7 +125,7 @@ router.delete('/user/affinities/', requireAuth, async (req, res) => {
  *
  * @bodyparam userId // the user id to get the affinities for
  *
- * @returns userAffinity // the user affinity of the user
+ * @returns a json object with user Id, affinities and complexities
  *
  * @errors
  *         401 // if unauthorized

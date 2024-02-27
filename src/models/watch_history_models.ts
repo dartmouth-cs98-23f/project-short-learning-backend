@@ -13,7 +13,7 @@ const WatchHistorySchema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     date: { type: Date, required: true },
     videoId: { type: Schema.Types.ObjectId, ref: 'VideoMetadata', required: true },
-    clipId: { type: Schema.Types.ObjectId, ref: 'Clip', required: true },
+    clipId: { type: Schema.Types.ObjectId, ref: 'Clip', required: false },
     duration: { type: Number, required: true },
   },
   {
