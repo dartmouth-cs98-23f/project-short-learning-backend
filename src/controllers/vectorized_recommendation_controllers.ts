@@ -4,14 +4,11 @@ import {
   TopicRecommendation, VideoRecommendation,
   RankingVideoMetadata, RankingTopicMetadata
 } from '../models/vectorized_recommendation_model'
+import { VideoResult } from '../models/search_models';
+import { VideoMetadata, VideoMetadataDocument } from '../models/video_models';
 
 const PINECONE_API_KEY          = process.env.PINECONE_API_KEY;
 const PINECONE_INDEX_NAME       = process.env.PINECONE_INDEX_NAME;
-
-logger.debug(`{
-  PINECONE_API_KEY: ${PINECONE_API_KEY},
-  PINECONE_INDEX_NAME: ${PINECONE_INDEX_NAME},
-}`)
 
 const pc = new Pinecone({
   apiKey: PINECONE_API_KEY
@@ -56,15 +53,18 @@ export const getVideoRecommendations = async (videoId: string, userId: string) =
       includeMetadata: true,
     });
 
+    
     let videoRecommendation: VideoRecommendation = {
       userId: userId.length > 0 ? userId : undefined,
-      videos: recommendations.matches.map((match) => {
+      videos: await Promise.all(recommendations.matches.map(async (match) => {
+        const metadata = await populateVideo(videoId);
         return {
           videoId: match.id.slice(0, -4),
           topics: Array.isArray(match.metadata?.inferenceTopics) ? Array.from(match.metadata.inferenceTopics) : [],
           score: match.score,
+          metadata
         }
-      })
+      }))
     }
 
     // TODO: rank videos with user affinity
@@ -73,7 +73,15 @@ export const getVideoRecommendations = async (videoId: string, userId: string) =
   }
   catch (error) {
     logger.error(error);
-    console.log(`ERROR: ${JSON.stringify(error)}`)
     throw new Error(error)
   }
+}
+
+
+
+async function populateVideo(videoId: any): Promise<VideoMetadataDocument> {
+  return await VideoMetadata.findById(videoId)
+    .populate('clips')
+    .exec()
+    .then( (metadata) => metadata)
 }
