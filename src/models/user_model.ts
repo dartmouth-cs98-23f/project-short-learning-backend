@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { Document, Schema, Types } from 'mongoose'
 var bcrypt = require('bcryptjs')
 
 export interface UserDocument extends Document {
@@ -14,6 +14,7 @@ export interface UserDocument extends Document {
   onBoardingStatus: string
   emailVerificationCode: number
   isAdmin: boolean
+  savedPlaylists: Types.ObjectId[]
   comparePassword(candidatePassword: string): Promise<boolean>
 }
 
@@ -31,6 +32,7 @@ const UserSchema = new Schema<UserDocument>(
     onBoardingStatus: String,
     emailVerificationCode: { type: Number, select: false },
     isAdmin: { type: Boolean, default: false },
+    savedPlaylists: { type: [Types.ObjectId], default: []}
   },
   {
     toObject: { virtuals: true },
