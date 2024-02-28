@@ -11,7 +11,7 @@ export interface UserDocument extends Document {
   registrationDate: Date
   lastLoginDate: Date
   profilePicture: string
-  onBoardingStatus: string
+  onBoardingStatus: Boolean
   emailVerificationCode: number
   isAdmin: boolean
   comparePassword(candidatePassword: string): Promise<boolean>
@@ -28,7 +28,7 @@ const UserSchema = new Schema<UserDocument>(
     registrationDate: { type: Date, default: Date.now },
     lastLoginDate: { type: Date, default: Date.now },
     profilePicture: String,
-    onBoardingStatus: String,
+    onBoardingStatus: Boolean,
     emailVerificationCode: { type: Number, select: false },
     isAdmin: { type: Boolean, default: false },
   },
