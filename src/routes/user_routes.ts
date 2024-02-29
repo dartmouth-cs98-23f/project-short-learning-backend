@@ -193,3 +193,25 @@ router.post('/user/resend', requireAuth, async (req, res) => {
 })
 
 export default router
+
+/**
+ * PUT request to add video to saved playlist by ID
+ *  - See src/models.user_model.ts for the User schema
+ * 
+ * @headerparam Authorization is the user's token
+ * 
+ * @returns success
+ * 
+ * @errors 
+ *        401 // if unauthorized
+ *        422 // if playlist to add is already in list or playlist to remove is not
+ */
+router.put('/user/savePlaylist', requireAuth, async (req, res) => {
+  try {
+    const saved = await User.savePlaylist(req.user, req.body)
+    res.json(saved)
+  }
+  catch (error) {
+    res.status(422).send({ error: error.toString() })
+  }
+})

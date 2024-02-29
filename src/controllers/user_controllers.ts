@@ -4,6 +4,7 @@ import UserAffinity from '../models/user_affinity_model'
 import { sendEmail } from '../utils/sendEmail'
 import UserModel from '../models/user_model'
 import { logger } from '../services/logger'
+import { Types } from 'mongoose'
 
 export const signin = (user) => {
   return tokenForUser(user)
@@ -151,6 +152,35 @@ export const verifyUser = async (user, { emailVerificationCode }) => {
     } else {
       throw new Error('Invalid verification token')
     }
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+export const savePlaylist = async (user, { playlistId, saved }) => {
+  try {
+    const userToSave = await User.findById(user.id)
+    let videoIndex = userToSave.savedPlaylists.indexOf(playlistId);
+    let playlist = new Types.ObjectId(playlistId)
+    if (saved == true) {
+      if (videoIndex == -1) {
+        console.log("Adding to list")
+        userToSave.savedPlaylists.push(playlist); // Update the array
+      } else {
+        throw new Error("Playlist to save already in list")
+      }
+    } else if (saved == false) {
+      if (videoIndex !== -1) {
+        userToSave.savedPlaylists.splice(videoIndex, 1); // Update the array
+      } else {
+        throw new Error('Playlist to delete is not in list')
+      }
+    } else {
+      throw new Error('Invalid toSave boolean')
+    }
+
+    await userToSave.save(); // Save the updated document
+    return true;
   } catch (error) {
     throw new Error(error)
   }
