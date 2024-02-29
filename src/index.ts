@@ -49,5 +49,7 @@ app.use('/api', watchHistoryRouter)
 app.use('/api', recommendationRouter)
 app.use('/api', topicRouter)
 app.use('/api', dashboardRouter)
+app.use('/api', searchRouter)
+app.use('/api', vectorizedRecRouter)
 
 runApp()
