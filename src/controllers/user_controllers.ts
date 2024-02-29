@@ -23,8 +23,8 @@ export const signup = async ({
     !password ||
     !username ||
     !firstName ||
-    !lastName ||
-    !birthDate
+    !lastName
+    // !birthDate
   ) {
     throw new Error('Incomplete information provided')
   }
@@ -46,10 +46,10 @@ export const signup = async ({
   user.email = email
   user.username = username
   user.password = password
-  user.birthDate = new Date(birthDate)
+  user.birthDate = new Date()
   user.registrationDate = new Date()
   user.lastLoginDate = new Date()
-  user.onBoardingStatus = 'verifying'
+  user.onBoardingStatus = false
   await user.save()
 
   return tokenForUser(user)

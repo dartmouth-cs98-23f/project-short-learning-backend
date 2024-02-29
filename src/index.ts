@@ -12,6 +12,7 @@ import { logger, requestLogger, responseLogger } from './services/logger'
 import topicRouter from './routes/topics_routes'
 import watchHistoryRouter from './routes/watch_history_routes'
 import dashboardRouter from './routes/dashboard_routes'
+import searchRouter from './routes/search_routes'
 
 const app = express()
 const port: Number = 3000
@@ -47,5 +48,6 @@ app.use('/api', watchHistoryRouter)
 app.use('/api', recommendationRouter)
 app.use('/api', topicRouter)
 app.use('/api', dashboardRouter)
+app.use('/api', searchRouter)
 
 runApp()
