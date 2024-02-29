@@ -5,9 +5,9 @@ import { VideoMetadata } from '../models/video_models'
 const fs = require('fs')
 
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8')
-const affinitiesTruthTable = fileContent.split(/[\r\n]+/).map(line => parseInt(line.trim(), 10)).filter(Number.isInteger);
+const affinitiesTruthTable = fileContent.split(/[\r\n]+/)
 
-export const createVideoAffinity = async (videoId, { affinities }) => {
+export const createVideoAffinity = async (videoId, { affinities, complexities }) => {
   try {
     const video = await VideoMetadata.findById(videoId)
     if (!video) {
@@ -24,19 +24,39 @@ export const createVideoAffinity = async (videoId, { affinities }) => {
 
     const videoAffinity = new VideoAffinity({
       videoId: video._id,
-      affinities: []
+      affinities: {},
+      complexities: {}
     })
-
-    const newAffinities = []
     
-    affinities.forEach((topic) => {
-      if (!affinitiesTruthTable.includes(topic)) {
-        throw new Error(`Invalid topic ID: ${topic}`)
+    if (affinities) {
+      for (const [key, value] of Object.entries(affinities)) {
+        if (!affinitiesTruthTable.includes(key)) {
+          throw new Error(`Invalid topic ID: ${key}`)
+        }
+        if (typeof value !== 'number') {
+          throw new Error(`Expected a number for affinity value, but got a ${typeof value}`);
+        }
+        if (value < 0 || value > 1) {
+          throw new Error(`Invalid affinity value: ${value}`)
+        }
+        videoAffinity.affinities.set(key, value)
       }
-      newAffinities.push(topic)
-    })
+    }
 
-    videoAffinity.affinities = newAffinities
+    if (complexities) {
+      for (const [key, value] of Object.entries(complexities)) {
+        if (!affinitiesTruthTable.includes(key)) {
+          throw new Error(`Invalid topic ID: ${key}`)
+        }
+        if (typeof value !== 'number') {
+          throw new Error(`Expected a number for complexity value, but got a ${typeof value}`);
+        }
+        if (value < 0 || value > 1) {
+          throw new Error(`Invalid complexity value: ${value}`)
+        }
+        videoAffinity.complexities.set(key, value)
+      }
+    }
 
     const savedVideoAffinity = await videoAffinity.save()
 
@@ -60,7 +80,7 @@ export const getVideoAffinities = async (videoId) => {
   }
 }
 
-export const updateVideoAffinities = async (videoId, { affinities }) => {
+export const updateVideoAffinities = async (videoId, { affinities, complexities }) => {
   try {
     const video = await VideoMetadata.findById(videoId)
     if (!video) {
@@ -73,16 +93,35 @@ export const updateVideoAffinities = async (videoId, { affinities }) => {
       throw new Error('Video affinities does not exists')
     }
 
-    const newAffinities = []
-
-    affinities.forEach((topic) => {
-      if (!affinitiesTruthTable.includes(topic)) {
-        throw new Error(`Invalid topic ID: ${topic}`)
+    if (affinities) {
+      for (const [key, value] of Object.entries(affinities)) {
+        if (!affinitiesTruthTable.includes(key)) {
+          throw new Error(`Invalid topic ID: ${key}`)
+        }
+        if (typeof value !== 'number') {
+          throw new Error(`Expected a number for affinity value, but got a ${typeof value}`);
+        }
+        if (value < 0 || value > 1) {
+          throw new Error(`Invalid affinity value: ${value}`)
+        }
+        videoAffinity.affinities.set(key, value)
       }
-      newAffinities.push(topic)
-    })
+    }
 
-    videoAffinity.affinities = newAffinities
+    if (complexities) {
+      for (const [key, value] of Object.entries(complexities)) {
+        if (!affinitiesTruthTable.includes(key)) {
+          throw new Error(`Invalid topic ID: ${key}`)
+        }
+        if (typeof value !== 'number') {
+          throw new Error(`Expected a number for complexity value, but got a ${typeof value}`);
+        }
+        if (value < 0 || value > 1) {
+          throw new Error(`Invalid complexity value: ${value}`)
+        }
+        videoAffinity.complexities.set(key, value)
+      }
+    }
   
     const savedVideoAffinity = await videoAffinity.save()
     return savedVideoAffinity

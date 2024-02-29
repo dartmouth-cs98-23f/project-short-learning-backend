@@ -33,16 +33,26 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [1, 6, 8]
+        affinities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
+        complexities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
+      expect(response.body).to.have.property('complexities')
       expect(response.body).to.have.property('userId')
     })
   })
 
-  it('Posting bad affinity for user with bad topic/subtopic combo, expected to fail', () => {
+  it('Posting bad affinity for user with bad affinity topics, expected to fail', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'POST',
@@ -51,7 +61,41 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [500, 81, 9]
+        affinities: {
+          1: 0.3,
+          6: 0.22,
+          800: 0.5,
+        },
+        complexities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(422)
+    })
+  })
+
+  it('Posting bad affinity for user with bad complexity topics, expected to fail', () => {
+    cy.request({
+      failOnStatusCode: false,
+      method: 'POST',
+      url: `${URL}/user/affinities`,
+      headers: {
+        Authorization: token
+      },
+      body: {
+        affinities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
+        complexities: {
+          1: 0.3,
+          6: 0.22,
+          500: 0.5,
+        },
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
@@ -79,12 +123,33 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [1, 6, 8, 9]
+        affinities: {
+          9: 1
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
       expect(Object.values(response.body.affinities).length).to.eq(4)
+    })
+  })
+
+  it('Updating affinities for user by adding an additional complexity', () => {
+    cy.request({
+      method: 'PUT',
+      url: `${URL}/user/affinities`,
+      headers: {
+        Authorization: token
+      },
+      body: {
+        complexities: {
+          9: 1
+        }
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('complexities')
+      expect(Object.values(response.body.complexities).length).to.eq(4)
     })
   })
 
@@ -97,7 +162,27 @@ describe('User Affinity Test', () => {
         Authorization: token
       },
       body: {
-        affinities: [1, 6, 8, 9, 500]
+        affinities: {
+          500: 0.7
+        }
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(422)
+    })
+  })
+
+  it('Updating an affinity for user, expected to fail because complexity does not exist in truth table', () => {
+    cy.request({
+      failOnStatusCode: false,
+      method: 'PUT',
+      url: `${URL}/user/affinities/`,
+      headers: {
+        Authorization: token
+      },
+      body: {
+        complexities: {
+          500: 0.7
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
@@ -182,7 +267,16 @@ describe('Video Affinity Test', () => {
       method: 'POST',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [1, 6, 8]
+        affinities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
+        complexities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
@@ -191,17 +285,49 @@ describe('Video Affinity Test', () => {
     })
   })
 
-  it('Posting bad affinity for video with bad topic/subtopic combo, expected to fail', () => {
+  it('Posting bad affinity for video with bad affinity topic id, expected to fail', () => {
     cy.request({
       failOnStatusCode: false,
       method: 'POST',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [1, 6, 800]
+        affinities: {
+          1: 0.3,
+          6: 0.22,
+          800: 0.5,
+        },
+        complexities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
     })
+  })
+
+  it('Posting bad affinity for video with bad complexity topic id, expected to fail', () => {
+    cy.request({
+      failOnStatusCode: false,
+      method: 'POST',
+      url: `${URL}/videos/${videoId}/affinities`,
+      body: {
+        affinities: {
+          1: 0.3,
+          6: 0.22,
+          8: 0.5,
+        },
+        complexities: {
+          1: 0.3,
+          6: 0.22,
+          500: 0.5,
+        },
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(422)
+    }
+    )
   })
 
   it('Gets all affinities for video', () => {
@@ -219,12 +345,30 @@ describe('Video Affinity Test', () => {
       method: 'PUT',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [1, 6, 8, 9]
+        affinities: {
+          9: 1
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(200)
       expect(response.body).to.have.property('affinities')
       expect(Object.values(response.body.affinities).length).to.eq(4)
+    })
+  })
+
+  it('Updating affinities for video by adding an additional complexity', () => {
+    cy.request({
+      method: 'PUT',
+      url: `${URL}/videos/${videoId}/affinities`,
+      body: {
+        complexities: {
+          9: 1
+        }
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('complexities')
+      expect(Object.values(response.body.complexities).length).to.eq(4)
     })
   })
 
@@ -234,7 +378,24 @@ describe('Video Affinity Test', () => {
       method: 'PUT',
       url: `${URL}/videos/${videoId}/affinities`,
       body: {
-        affinities: [1, 6, 8, 9, 500]
+        affinities: {
+          500: 0.7
+        }
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(422)
+    })
+  })
+
+  it('Updating an affinity for video, expected to fail because complexity does not exist in truth table', () => {
+    cy.request({
+      failOnStatusCode: false,
+      method: 'PUT',
+      url: `${URL}/videos/${videoId}/affinities`,
+      body: {
+        complexities: {
+          500: 0.7
+        }
       }
     }).then((response) => {
       expect(response.status).to.eq(422)
