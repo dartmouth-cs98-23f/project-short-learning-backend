@@ -119,3 +119,15 @@ export const adminGetWatchHistories = async ({ userId }, query) => {
     throw new Error(`Error getting watch history: ${error}`);
   }
 };
+
+export const getRecentTopics = async ( {userId} ) => {
+  try {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    throw new Error(error)
+  }
+}

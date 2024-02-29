@@ -147,5 +147,25 @@ watchHistoryRouter.get('/watchhistory/admin', requireAdmin, async (req, res) => 
   }
 });
 
+/**
+ * GET Request to get recent topics viewed
+ *  - see src/models/watch_history_models.ts for the schema
+ * 
+ * @bodyparam user to get the recent topics for 
+ * 
+ * @returns a list of json objects with the recent topics for the user
+ * 
+ * @errors 200 if success
+ *         422 if no watch history
+ *         500 if server error
+ */
+watchHistoryRouter.get('/recentTopics', requireAuth, async (req, res) => {
+  try {
+    const watchHistory = await WatchHistory.getRecentTopics(req.body)
+  } catch (error) {
+    throw new Error(error)
+  }
+})
+
 export default watchHistoryRouter
 
