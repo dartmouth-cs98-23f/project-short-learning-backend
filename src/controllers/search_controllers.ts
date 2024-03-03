@@ -3,11 +3,10 @@
  */
 
 import { logger } from '../services/logger'
-
 import { TopicResult, RankedSearchResults, VideoResult } from '../models/search_models'
-
 import algoliasearch from 'algoliasearch'
 import { VideoMetadata } from '../models/video_models'
+import UserModel from '../models/user_model'
 
 const appID           = process.env.ALGOLIA_SEARCH_APP_ID
 const apiKey          = process.env.ALGOLIA_SEARCH_API_KEY
@@ -19,6 +18,11 @@ const index = client.initIndex(indexName);
 const topicsIndex = client.initIndex(topicsIndexName);
 
 export const searchTranscript = async (query: string): Promise<RankedSearchResults> => {
+
+  if (!query) {
+    return { videos: [], topics: [] }
+  }
+
   try {
     return index.search(query).then( async (res) => {
 
@@ -34,6 +38,11 @@ export const searchTranscript = async (query: string): Promise<RankedSearchResul
 }
 
 export const searchTopics = async (query: string): Promise<RankedSearchResults> => {
+
+  if (!query) {
+    return { videos: [], topics: [] }
+  }
+
   try {
     return topicsIndex.search(query).then(async (res) => {
 
@@ -46,6 +55,63 @@ export const searchTopics = async (query: string): Promise<RankedSearchResults> 
     logger.error(error)
     throw new Error(`SEARCH ERROR: ${error}`)
   }
+}
+
+export const searchUser = async (query: string) => {
+
+  if (!query) {
+    return { users: [] }
+  }
+  
+  try {
+    // search for user in user model (firs name, last name, username, email)
+    const users = await UserModel.find({
+      $or: [
+        { firstName: { $regex: query, $options: 'i' }},
+        { lastName: { $regex: query, $options: 'i' }},
+        { username: { $regex: query, $options: 'i' }},
+        { email: { $regex: query, $options: 'i' }}
+      ]
+    })
+    
+    // filter out sensitive information
+    return users.map((user) => {
+      return {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email
+      }
+    })
+  } catch (error) {
+    logger.error(error)
+    throw new Error(`SEARCH ERROR: ${error}`)
+  }
+}
+
+export const searchAll = async (query) => {
+
+  try {
+
+    const queries = [
+      searchTranscript(query.q),
+      searchTopics(query.topic),
+      searchUser(query.user)
+    ]
+
+    const results: any = await Promise.all(queries)
+
+    const videos = results[0].videos.concat(results[1].videos)
+    const topics = results[0].topics.concat(results[1].topics)
+    const users = results[2]
+
+    return { videos, topics, users }
+  } catch (error) {
+    logger.error(error)
+    throw new Error(`SEARCH ERROR: ${error}`)
+  }
+
 }
 
 function accumulateTopics(results: any): TopicResult[] {
