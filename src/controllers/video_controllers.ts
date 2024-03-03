@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { VideoMetadata } from '../models/video_models'
+import { VideoMetadata, InferenceSummary } from '../models/video_models'
 import { ClipMetadata } from '../models/clip_models'
 import { Comment } from '../models/comment_model'
 import { logger } from '../services/logger'
@@ -41,7 +41,7 @@ export const createVideo = async (req: Request, res: Response) => {
     clipDescriptions,
     clipDurations,
     clipThumbnailURLs,
-    clipLinks,
+    clipLinks
   ]
 
   if (!title) {
@@ -55,18 +55,21 @@ export const createVideo = async (req: Request, res: Response) => {
   } else if (!clipLinks) {
     return res.status(422).json({ message: 'Missing clipLinks parameter' })
   } else if (
-    clipArray && clipArray.some((clipArray) => clipArray.length !== clipLinks.length &&
-    clipArray.length !== clipTitles.length &&
-    clipArray.length !== clipDescriptions.length &&
-    clipArray.length !== clipDurations.length &&
-    clipArray.length !== clipThumbnailURLs.length
+    clipArray &&
+    clipArray.some(
+      (clipArray) =>
+        clipArray.length !== clipLinks.length &&
+        clipArray.length !== clipTitles.length &&
+        clipArray.length !== clipDescriptions.length &&
+        clipArray.length !== clipDurations.length &&
+        clipArray.length !== clipThumbnailURLs.length
     )
   ) {
     return res
       .status(422)
       .json({ message: 'Some clip array has a different length' })
   }
- 
+
   // TOOD: Confirm if clips exist in S3
   // TODO: Confirm thumbnailURL exists in S3
 
@@ -369,4 +372,10 @@ export const addLikeToComment = async (req: Request, res: Response) => {
     message: 'Like successful',
     likes: comment.likes.length
   })
+}
+
+export const getVideoSummary = async (videoId: string) => {
+
+  const inferenceSummary = await InferenceSummary.findOne({ _id: videoId })
+  return inferenceSummary
 }
