@@ -36,11 +36,12 @@ searchRouter.get('/search', requireAdmin, async (req: Request, res: Response) =>
     }
     else if (user) {
       results = await SearchController.searchUser(user)
+      return res.status(200).json({ "users": results })
     }
 
     // if results is set, return it
     if (results) {
-      return res.status(200).json({ results: results })
+      return res.status(200).json(results)
     }
     else {
       return res.status(400).json({ error: 'No query, topic, or user regex provided' })
