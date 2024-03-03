@@ -30,7 +30,7 @@ export const getVideoRecommendations = async (videoId?: string, userId?: string)
     // get recommendations for video_id
     const recommendations = await index.query({
       vector: searchVectors,
-      topK: 10,
+      topK: 5,
       includeMetadata: true,
     })
     
@@ -71,7 +71,7 @@ async function getSearchVectors(videoId?: string, userId?: string) {
       
       // get vectors for video_id
       const response = await index.query({
-        id: `${videoId}_max`,
+        id: `${videoId}_avg`,
         includeValues: true,
         topK: 1
       })
@@ -88,22 +88,22 @@ async function getSearchVectors(videoId?: string, userId?: string) {
       // if userId is specified, get vectors for user_id from watch history
       // get watch history for user_id
       const history = await WatchHistory.getWatchHistories({ id: userId }, { limit: 10, order: [['date', 'DESC']] })
-
-      const videoId = history[0].videoId
+      
+      const videoId = history.length > 0 ? history[0].videoId : "65d8fc1c95f306b28d1b887b" // TECHNIGALA: WARNING USES HARDCODING 
 
       const index = pc.index(PINECONE_INDEX_NAME)
       const response = await index.query({
-        id: `${videoId}_max`,
+        id: `${videoId}_avg`,
         includeValues: true,
         topK: 1
       })
 
       if (response.matches.length !== 1) {
+        logger.error(`NO VIDEO "${videoId}" FOUND IN PINECONE FOR USER ${userId}`)
         throw new Error(`NO VIDEO "${videoId}" FOUND IN PINECONE FOR USER ${userId}`)
       }
       
       vectors = response.matches.length > 0 ? response.matches[0].values : []
-
       return vectors
 
     }
