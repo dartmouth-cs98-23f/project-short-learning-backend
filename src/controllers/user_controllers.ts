@@ -5,6 +5,7 @@ import { sendEmail } from '../utils/sendEmail'
 import UserModel from '../models/user_model'
 import { logger } from '../services/logger'
 import { Types } from 'mongoose'
+import { indexedMap, allTopics } from '../utils/topics'
 
 export const signin = (user) => {
   return tokenForUser(user)
@@ -160,18 +161,18 @@ export const verifyUser = async (user, { emailVerificationCode }) => {
 export const savePlaylist = async (user, { playlistId, saved }) => {
   try {
     const userToSave = await User.findById(user.id)
-    let videoIndex = userToSave.savedPlaylists.indexOf(playlistId);
+    let videoIndex = userToSave.savedPlaylists.indexOf(playlistId)
     let playlist = new Types.ObjectId(playlistId)
     if (saved == true) {
       if (videoIndex == -1) {
-        console.log("Adding to list")
-        userToSave.savedPlaylists.push(playlist); // Update the array
+        console.log('Adding to list')
+        userToSave.savedPlaylists.push(playlist) // Update the array
       } else {
-        throw new Error("Playlist to save already in list")
+        throw new Error('Playlist to save already in list')
       }
     } else if (saved == false) {
       if (videoIndex !== -1) {
-        userToSave.savedPlaylists.splice(videoIndex, 1); // Update the array
+        userToSave.savedPlaylists.splice(videoIndex, 1) // Update the array
       } else {
         throw new Error('Playlist to delete is not in list')
       }
@@ -179,8 +180,154 @@ export const savePlaylist = async (user, { playlistId, saved }) => {
       throw new Error('Invalid toSave boolean')
     }
 
-    await userToSave.save(); // Save the updated document
-    return true;
+    await userToSave.save() // Save the updated document
+    return true
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+let onboardingTopics = [
+  'Algorithms',
+  'UI/UX',
+  'AI/ML',
+  'Cybersecurity',
+  'Mobile App Development',
+  'Web Development',
+  'Databases',
+  'Networks',
+  'Cloud',
+  'Operating Systems',
+  'Games',
+  'Data Science',
+  'Computer Vision',
+  'Quantum Computing'
+]
+
+let roles = ['Frontend', 'Backend', 'ML', 'AI/Data', 'DevOps', 'QA']
+let roleAffinities = {
+  Frontend: {
+    '1': 0.3,
+    '7': 0.1,
+    '13': 0.2,
+    '19': 0.1,
+    '25': 0.5,
+    '31': 0.7,
+    '37': 0.8,
+    '43': 0.6,
+    '49': 0.9,
+    '55': 0.4,
+    '61': 0.1,
+    '67': 0.0
+  },
+  Backend: {
+    '1': 0.6,
+    '7': 0.2,
+    '13': 0.4,
+    '19': 0.3,
+    '25': 0.8,
+    '31': 0.3,
+    '37': 0.9,
+    '43': 0.8,
+    '49': 0.7,
+    '55': 0.2,
+    '61': 0.4,
+    '67': 0.1
+  },
+  ML: {
+    '1': 0.5,
+    '7': 0.9,
+    '13': 0.2,
+    '19': 0.8,
+    '25': 0.3,
+    '31': 0.2,
+    '37': 0.6,
+    '43': 0.5,
+    '49': 0.1,
+    '55': 0.4,
+    '61': 0.7,
+    '67': 0.2
+  },
+  'AI/Data': {
+    '1': 0.4,
+    '7': 0.9,
+    '13': 0.1,
+    '19': 0.9,
+    '25': 0.4,
+    '31': 0.2,
+    '37': 0.5,
+    '43': 0.4,
+    '49': 0.1,
+    '55': 0.3,
+    '61': 0.8,
+    '67': 0.2
+  },
+  DevOps: {
+    '1': 0.4,
+    '7': 0.1,
+    '13': 0.6,
+    '19': 0.2,
+    '25': 0.7,
+    '31': 0.3,
+    '37': 0.8,
+    '43': 0.9,
+    '49': 0.5,
+    '55': 0.2,
+    '61': 0.3,
+    '67': 0.1
+  },
+  QA: {
+    '1': 0.7,
+    '7': 0.2,
+    '13': 0.3,
+    '19': 0.4,
+    '25': 0.5,
+    '31': 0.6,
+    '37': 0.9,
+    '43': 0.8,
+    '49': 0.6,
+    '55': 0.4,
+    '61': 0.5,
+    '67': 0.1
+  }
+}
+
+export const onboarding = async (user, body) => {
+  try {
+    const userId = user.id
+    const roles: string[] = body.roles
+    const values: number[] = body.values
+    const topics: string[] = body.topics
+    const complexity: number = body.complexity
+    const userDoc = await User.findById(userId)
+    // create doc if it doesnt exist
+    const userAffinityDoc = await UserAffinity.findOne({ userId: userId })
+    if (!userAffinityDoc) {
+      const affinities = {}
+      for (let i = 0; i < roles.length; i++) {
+        const role = roles[i]
+        const value = values[i]
+        const topics = roleAffinities[role]
+    
+      }
+
+      const complexities = {}
+      
+      const newUserAffinity = new UserAffinity({
+        userId: userId,
+        affinities,
+        complexities
+      })
+      await newUserAffinity.save()
+    }
+    // Load complexities for each topic to be equal to this base value
+    // Load affinities for each topic to be based on their selected topic ()
+
+    userDoc.onBoardingStatus = true
+
+    // Fill in user affinity later
+    await userDoc.save()
+    return user
   } catch (error) {
     throw new Error(error)
   }
