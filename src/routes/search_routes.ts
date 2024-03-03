@@ -20,11 +20,15 @@ searchRouter.get('/search', requireAdmin, async (req: Request, res: Response) =>
   const query = req.query.q?.toString()
   const topic = req.query.topic?.toString()
   const user = req.query.user?.toString()
-  // const all = req.query.all?.toString()
+  const all = req.query.all?.toString()
 
   try {
     let results
-    if (query) {
+
+    if (all) {
+      results = await SearchController.searchAll({ q: query, topic: topic, user: user })
+    }
+    else if (query) {
       results = await SearchController.searchTranscript(query)
     }
     else if (topic) {
@@ -39,7 +43,7 @@ searchRouter.get('/search', requireAdmin, async (req: Request, res: Response) =>
       return res.status(200).json({ results: results })
     }
     else {
-      return res.status(400).json({ error: 'No query or topic provided' })
+      return res.status(400).json({ error: 'No query, topic, or user regex provided' })
     }
   } catch (error) {
     logger.error(error)

@@ -18,6 +18,11 @@ const index = client.initIndex(indexName);
 const topicsIndex = client.initIndex(topicsIndexName);
 
 export const searchTranscript = async (query: string): Promise<RankedSearchResults> => {
+
+  if (!query) {
+    return { videos: [], topics: [] }
+  }
+
   try {
     return index.search(query).then( async (res) => {
 
@@ -33,6 +38,11 @@ export const searchTranscript = async (query: string): Promise<RankedSearchResul
 }
 
 export const searchTopics = async (query: string): Promise<RankedSearchResults> => {
+
+  if (!query) {
+    return { videos: [], topics: [] }
+  }
+
   try {
     return topicsIndex.search(query).then(async (res) => {
 
@@ -48,6 +58,11 @@ export const searchTopics = async (query: string): Promise<RankedSearchResults> 
 }
 
 export const searchUser = async (query: string) => {
+
+  if (!query) {
+    return { users: [] }
+  }
+  
   try {
     // search for user in user model (firs name, last name, username, email)
     const users = await UserModel.find({
@@ -73,6 +88,30 @@ export const searchUser = async (query: string) => {
     logger.error(error)
     throw new Error(`SEARCH ERROR: ${error}`)
   }
+}
+
+export const searchAll = async (query) => {
+
+  try {
+
+    const queries = [
+      searchTranscript(query.q),
+      searchTopics(query.topic),
+      searchUser(query.user)
+    ]
+
+    const results: any = await Promise.all(queries)
+
+    const videos = results[0].videos.concat(results[1].videos)
+    const topics = results[0].topics.concat(results[1].topics)
+    const users = results[2]
+
+    return { videos, topics, users }
+  } catch (error) {
+    logger.error(error)
+    throw new Error(`SEARCH ERROR: ${error}`)
+  }
+
 }
 
 function accumulateTopics(results: any): TopicResult[] {
