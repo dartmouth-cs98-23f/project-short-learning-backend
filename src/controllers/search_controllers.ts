@@ -3,11 +3,10 @@
  */
 
 import { logger } from '../services/logger'
-
 import { TopicResult, RankedSearchResults, VideoResult } from '../models/search_models'
-
 import algoliasearch from 'algoliasearch'
 import { VideoMetadata } from '../models/video_models'
+import UserModel from '../models/user_model'
 
 const appID           = process.env.ALGOLIA_SEARCH_APP_ID
 const apiKey          = process.env.ALGOLIA_SEARCH_API_KEY
@@ -41,6 +40,34 @@ export const searchTopics = async (query: string): Promise<RankedSearchResults> 
       const videos = await accumulateVideos(res.hits)
 
       return { videos, topics: topics.slice(0, 10) }
+    })
+  } catch (error) {
+    logger.error(error)
+    throw new Error(`SEARCH ERROR: ${error}`)
+  }
+}
+
+export const searchUser = async (query: string) => {
+  try {
+    // search for user in user model (firs name, last name, username, email)
+    const users = await UserModel.find({
+      $or: [
+        { firstName: { $regex: query, $options: 'i' }},
+        { lastName: { $regex: query, $options: 'i' }},
+        { username: { $regex: query, $options: 'i' }},
+        { email: { $regex: query, $options: 'i' }}
+      ]
+    })
+    
+    // filter out sensitive information
+    return users.map((user) => {
+      return {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email
+      }
     })
   } catch (error) {
     logger.error(error)

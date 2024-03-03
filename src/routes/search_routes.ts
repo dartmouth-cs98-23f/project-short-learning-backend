@@ -19,6 +19,8 @@ searchRouter.get('/search', requireAdmin, async (req: Request, res: Response) =>
 
   const query = req.query.q?.toString()
   const topic = req.query.topic?.toString()
+  const user = req.query.user?.toString()
+  // const all = req.query.all?.toString()
 
   try {
     let results
@@ -27,6 +29,9 @@ searchRouter.get('/search', requireAdmin, async (req: Request, res: Response) =>
     }
     else if (topic) {
       results = await SearchController.searchTopics(topic)
+    }
+    else if (user) {
+      results = await SearchController.searchUser(user)
     }
 
     // if results is set, return it
