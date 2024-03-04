@@ -61,6 +61,7 @@ searchRouter.get(
 /**
  * GET /explore/explorepage
  *
+ * @bodyparam {number} page - the page number to get
  *
  * Used for the explore page.
  */
@@ -71,16 +72,17 @@ searchRouter.get(
     try {
       const userId = req.user.id
       const page = req.body.page || 1
-      const roles = await ExploreController.getTopRoles(userId) // This looks weird, check why QA first tomorrow?
-      const topics = await ExploreController.getTopTopics(userId, page * 2)
 
+      const roles = await ExploreController.getTopRoles(userId) // This looks weird, check why QA first tomorrow?
+      const role = roles[(page - 1) % roles.length]
+      const roleVideos = await ExploreController.getRoleVideos(userId, role, 1)
+
+      const topics = await ExploreController.getTopTopics(userId, page * 2)
       const topic1 = topics[topics.length - 1]
       const topic2 = topics[topics.length - 2]
-
       const topicName1 = allTopics[topic1]
       const topicName2 = allTopics[topic2]
 
-      const role = roles[(page - 1) % roles.length]
       const topicVideos1 = await ExploreController.getTopicVideos(
         userId,
         topic1,
@@ -91,7 +93,7 @@ searchRouter.get(
         topic2,
         1
       )
-      const roleVideos = await ExploreController.getRoleVideos(userId, role, 1)
+      
       return res.status(200).json({
         topicVideos: [
           { topic: topicName1, videos: topicVideos1 },
