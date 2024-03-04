@@ -191,15 +191,13 @@ export const getRecentTopics = async ( user ) => {
     let history = await getWatchHistories(user, params);
     let watchedTopics = await findTopics(history)
     let topics = []
-
-
+    
     for (let topic of watchedTopics)  {
       topics.push({topicId: topic,
                   topicName: allTopics[topic],
                   })
     }
     
-    console.log(topics)
     return {topics: topics}
   } catch (error) {
     throw new Error(error)
