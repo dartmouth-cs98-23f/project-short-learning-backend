@@ -1,4 +1,5 @@
 import WatchHistory from "../models/watch_history_models";
+import { VideoMetadata } from '../models/video_models'
 import UserModel from "../models/user_model";
 
 export const getWatchHistories = async (user, queryParameters) => {
@@ -120,13 +121,69 @@ export const adminGetWatchHistories = async ({ userId }, query) => {
   }
 };
 
+const findTopics = async (watchHistory) => {
+  let topics = [];
+  for (let item of watchHistory) {
+    let video = item.videoId;
+    let videoMeta = await VideoMetadata.findById(video)
+    if(videoMeta) {
+      for(let topic of videoMeta.topicId) {
+        if(topics.indexOf(topic) == -1) {
+          topics.push(topic)
+        }
+      }
+    } else {
+      throw new Error("No video found with given ID")
+    }
+    
+  }
+  return topics.length
+}
+
+export const getStatistics = async ( user ) => {
+  try {
+    const isUser = await UserModel.findById(user.id);
+    if(!isUser) {
+      throw new Error("User not found")
+    }
+    let todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    let midnight = new Date(todayDate.getTime());
+    let weekDate = new Date(todayDate.setDate(todayDate.getDate() - 7));
+    todayDate = new Date()
+
+    const todayParams = { 'date.gt': midnight, 'date.lt': todayDate, limit: 500 }
+    const weekParams = { 'date.gt': weekDate, 'date.lt': todayDate, limit: 500 }
+    const allParams = { 'date.gt': null, 'date.lt': todayDate, limit: 500 }
+    let todayHistory = await getWatchHistories(user, todayParams);
+    let weekHistory = await getWatchHistories(user, weekParams);
+    let allHistory = await getWatchHistories(user, allParams);
+    let todayTopics = await findTopics(todayHistory)
+    let weekTopics = await findTopics(weekHistory)
+    let allTopics = await findTopics(allHistory)
+
+    let statistics = {statistics:
+                      [{value: `${todayTopics}`,
+                      item: "topics",
+                      timeframe: "today"},
+                      {value: `${weekTopics}`,
+                      item: "topics",
+                      timeframe: "this week"},
+                      {value: `${allTopics}`,
+                      item: "topics",
+                      timeframe: "total"}]
+                    }
+            
+    return statistics
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const getRecentTopics = async ( {userId} ) => {
   try {
-    const user = await UserModel.findById(userId);
-
-    if (!user) {
-      throw new Error('User not found');
-    }
+    
+    
   } catch (error) {
     throw new Error(error)
   }

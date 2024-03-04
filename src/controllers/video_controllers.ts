@@ -3,6 +3,7 @@ import { VideoMetadata } from '../models/video_models'
 import { ClipMetadata } from '../models/clip_models'
 import { Comment } from '../models/comment_model'
 import { logger } from '../services/logger'
+import { topicToVideoMap } from '../technigala/map_model'
 
 const MAX_COMMENT_LENGTH = 500
 
@@ -31,6 +32,7 @@ export const createVideo = async (req: Request, res: Response) => {
   const youtubeURL = req.body.youtubeURL
   const uploader = req.body.uploader
   const duration = req.body.duration
+  const topicId = req.body.topicId
   const clipDurations = req.body.clipDurations || []
   const thumbnailURL = req.body.thumbnailURL
   const clipThumbnailURLs = req.body.clipThumbnailURLs || []
@@ -66,6 +68,7 @@ export const createVideo = async (req: Request, res: Response) => {
       .status(422)
       .json({ message: 'Some clip array has a different length' })
   }
+  console.log(topicId)
  
   // TOOD: Confirm if clips exist in S3
   // TODO: Confirm thumbnailURL exists in S3
@@ -78,6 +81,7 @@ export const createVideo = async (req: Request, res: Response) => {
     uploadDate: new Date(),
     uploader: uploader,
     duration: duration,
+    topicId: topicId,
     thumbnailURL: thumbnailURL,
     clips: [],
     views: [],
