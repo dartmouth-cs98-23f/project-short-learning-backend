@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { requireAdmin, requireAuth } from '../services/passport'
 import { logger } from '../services/logger'
 import * as ExploreController from '../controllers/explore_controllers'
+import { allTopics } from '../utils/topics'
 
 const searchRouter = Router()
 
@@ -70,9 +71,35 @@ searchRouter.get(
     try {
       const userId = req.user.id
       const page = req.body.page || 1
-      const results = await ExploreController.getExplore(userId, page)
+      const roles = await ExploreController.getTopRoles(userId) // This looks weird, check why QA first tomorrow?
+      const topics = await ExploreController.getTopTopics(userId, page * 2)
 
-      return res.status(200).json({ ranking: results })
+      const topic1 = topics[topics.length - 1]
+      const topic2 = topics[topics.length - 2]
+
+      const topicName1 = allTopics[topic1]
+      const topicName2 = allTopics[topic2]
+
+      const role = roles[(page - 1) % roles.length]
+      const topicVideos1 = await ExploreController.getTopicVideos(
+        userId,
+        topic1,
+        1
+      )
+      const topicVideos2 = await ExploreController.getTopicVideos(
+        userId,
+        topic2,
+        1
+      )
+      const roleVideos = await ExploreController.getRoleVideos(userId, role, 1)
+      return res.status(200).json({
+        topicVideos: [
+          { topic: topicName1, videos: topicVideos1 },
+          { topic: topicName2, videos: topicVideos2 }
+        ],
+        roleVideos: [{ role, videos: roleVideos }],
+        page
+      })
     } catch (error) {
       logger.error(error)
       return res.status(500).json({ error: error })
