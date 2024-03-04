@@ -2,6 +2,7 @@ import { Router } from 'express'
 import * as WatchHistory from '../controllers/watch_history_controller'
 import { requireAuth, requireAdmin } from '../services/passport'
 import { stat } from 'fs';
+import { ClipMetadata } from '../models/clip_models';
 
 const watchHistoryRouter = Router()
 
@@ -70,8 +71,18 @@ watchHistoryRouter.get('/watchhistory/:videoId', requireAuth, async (req, res) =
 
 watchHistoryRouter.post('/watchhistory/:videoId', requireAuth, async (req, res) => {
   try {
+    if (!req.body.clipId || !req.body.duration) {
+      throw new Error('Clip ID and duration are required')
+    }
+    const duration = parseInt(req.body.duration)
+    if (isNaN(duration)) {
+      throw new Error('Duration must be a number')
+    }
+    const clipId = req.body.clipId
+    if (!ClipMetadata.findById(clipId)) {
+      throw new Error('Clip ID not found')
+    }
     const watchHistory = await WatchHistory.insertWatchHistory(req.user, req.params, req.body)
-    res.status(200).json(watchHistory)
   } catch (error) {
     res.status(422).json({ error: error.message })
   }
@@ -92,7 +103,7 @@ watchHistoryRouter.post('/watchhistory/:videoId', requireAuth, async (req, res) 
 
 watchHistoryRouter.delete('/watchhistory/:videoId', requireAuth, async (req, res) => {
   try {
-    const watchHistory = await WatchHistory.removeWatchHistory(req.user, req.params)
+    const watchHistory = await WatchHistory.  (req.user, req.params)
     res.status(200).json(watchHistory)
   } catch (error) {
     res.status(422).json({ error: error.message })
