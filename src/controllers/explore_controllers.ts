@@ -221,9 +221,9 @@ export const getExplore = async (userId: string, page: number) => {
   try {
     const roles = await getTopRoles(userId) // This looks weird, check why QA first tomorrow?
     const topics = await getTopTopics(userId, page)
-    const topicVideos = await getTopicVideos(userId, topics[page - 1], 1)
-    const roleVideos = await getRoleVideos(userId, roles[page - 1], 1)
-    return { topicVideos, roleVideos }
+    const topicVideos = await getTopicVideos(userId, topics[(page - 1) % topics.length], 1)
+    const roleVideos = await getRoleVideos(userId, roles[(page - 1) % roles.length], 1)
+    return { roleVideos, topicVideos }
   } catch (error) {
     logger.error(error)
   }
@@ -235,11 +235,22 @@ export const getRoleVideos = async (
   page: number
 ) => {
   try {
+    const videosPerTopic = 4
     const topics = roleTopics[role] 
-    // For all topics, get some user vector to query with
-    // Grab 3 random topics from the role (or use some pagination technique (better))
-    // Query pinecone with the user vector and filter for videos w/ only those topics 
-    // Return the videos mixed 
+    logger.debug(topics)
+    // Grab top two topics based on page TODO LATER IF LONG SCROLL
+    // const topic1 = topics[(page - 1) % roleTopics.length * 2 % topics.length]
+    // const topic2 = topics[(page - 1) * 2 % topics.length + 1]
+
+    const topic1 = topics[Math.floor(Math.random() * topics.length)]
+    const topic2 = topics[Math.floor(Math.random() * topics.length)]
+
+    const topic1Videos = await getTopicVideos(userId, topic1, 1, videosPerTopic)
+    const topic2Videos = await getTopicVideos(userId, topic2, 1, videosPerTopic)
+    
+    const videos = topic1Videos.concat(topic2Videos)
+
+    return videos
     
   } catch (error) {
     logger.error(error)
@@ -250,7 +261,8 @@ export const getRoleVideos = async (
 export const getTopicVideos = async (
   userId: string,
   topicId: string,
-  page: number
+  page: number,
+  pageSize: number = PAGE_SIZE
 ) => {
   try {
     const topicIndex = pineconeClient.index(PINECONE_INDEX_NAME_TOPICS)
@@ -262,7 +274,7 @@ export const getTopicVideos = async (
 
     const searchResponse = await index.query({
       vector: avgTopicRecord.values,
-      topK: PAGE_SIZE * page,
+      topK: pageSize * page,
       includeMetadata: true,
       filter: { topics: { $in: [topicId] } }
     })
@@ -276,7 +288,7 @@ export const getTopicVideos = async (
         return metadata
       })
     )
-    return videos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    return videos.slice((page - 1) * pageSize, page * pageSize)
   } catch (error) {
     logger.error(error)
   }

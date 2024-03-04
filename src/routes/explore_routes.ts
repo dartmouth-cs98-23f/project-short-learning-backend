@@ -71,6 +71,7 @@ searchRouter.get(
       const userId = req.user.id
       const page = req.body.page || 1
       const results = await ExploreController.getExplore(userId, page)
+
       return res.status(200).json({ ranking: results })
     } catch (error) {
       logger.error(error)
