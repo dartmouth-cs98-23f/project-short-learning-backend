@@ -27,11 +27,7 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
     uploader: { type: Schema.Types.ObjectId, required: false },
     duration: { type: Number, required: true },
     thumbnailURL: { type: String, required: false },
-    topicId: {
-      type: [],
-      ref: 'TopicMetadata',
-      required: false
-    },
+    topicId: { type: [Number], required: true },
     clips: {
       type: [Schema.Types.ObjectId],
       ref: 'ClipMetadata',

@@ -12,7 +12,7 @@ import { logger, requestLogger, responseLogger } from './services/logger'
 import topicRouter from './routes/topics_routes'
 import watchHistoryRouter from './routes/watch_history_routes'
 import dashboardRouter from './routes/dashboard_routes'
-import searchRouter from './routes/search_routes'
+import exploreRouter from './routes/explore_routes'
 import vectorizedRecRouter from './routes/vectorized-recommendations-routes'
 
 const app = express()
@@ -49,7 +49,7 @@ app.use('/api', watchHistoryRouter)
 app.use('/api', recommendationRouter)
 app.use('/api', topicRouter)
 app.use('/api', dashboardRouter)
-app.use('/api', searchRouter)
+app.use('/api', exploreRouter)
 app.use('/api', vectorizedRecRouter)
 
 runApp()
