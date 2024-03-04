@@ -166,8 +166,7 @@ export const savePlaylist = async (user, { playlistId, saved }) => {
     let playlist = new Types.ObjectId(playlistId)
     if (saved == true) {
       if (videoIndex == -1) {
-        console.log('Adding to list')
-        userToSave.savedPlaylists.push(playlist) // Update the array
+        userToSave.savedPlaylists.push(playlist); // Update the array
       } else {
         throw new Error('Playlist to save already in list')
       }

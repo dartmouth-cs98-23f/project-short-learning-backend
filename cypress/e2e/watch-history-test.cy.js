@@ -38,6 +38,7 @@ describe('Watch History Test', () => {
         uploader: '123456789101112131415161',
         tags: ['sample', 'video'],
         duration: 60,
+        topicId: [1],
         thumbnailURL:
           'https://hlsstack-hlsbucketf901f2c8-1wlixklj3wkgx.s3.us-east-1.amazonaws.com/video1sample.png',
         clipTitles: ['Sample Clip1', 'Sample Clip2'],
@@ -72,6 +73,7 @@ describe('Watch History Test', () => {
         uploader: '123456789101112131415161',
         tags: ['sample', 'video'],
         duration: 60,
+        topicId: [1, 2],
         thumbnailURL:
           'https://hlsstack-hlsbucketf901f2c8-1wlixklj3wkgx.s3.us-east-1.amazonaws.com/video1sample.png',
         clipTitles: ['Sample Clip1', 'Sample Clip2'],
@@ -104,6 +106,7 @@ describe('Watch History Test', () => {
         uploader: '123456789101112131415161',
         tags: ['sample', 'video'],
         duration: 60,
+        topicId: [3],
         thumbnailURL:
           'https://hlsstack-hlsbucketf901f2c8-1wlixklj3wkgx.s3.us-east-1.amazonaws.com/video1sample.png',
         clipTitles: ['Sample Clip1', 'Sample Clip2'],
@@ -214,6 +217,35 @@ describe('Watch History Test', () => {
       expect(response.body).to.have.property('date')
     })
   });
+
+  it('Getting recent Statistics', () => {
+    cy.request({
+      method: 'GET',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/statistics`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('statistics')
+      expect(response.body.statistics[1]).to.have.property('value')
+      expect(response.body.statistics[1].value).to.eq("3")
+    })
+  })
+
+  it('Getting recent topics', () => {
+    cy.request({
+      method: 'GET',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/recentTopics`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('topics')
+      expect(response.body.topics[1]).to.have.property('topicId')
+    })
+  })
 
   it('Updating the watch date of a specific video', () => {
     cy.request({
