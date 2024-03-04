@@ -34,7 +34,8 @@ const router = Router()
 router.post('/auth/signup', async (req, res) => {
   try {
     const token = await User.signup(req.body)
-    return res.json({ token })
+    const user = await User.getUser(req.body)
+    return res.json({ user, token })
   } catch (error) {
     return res.status(422).send(error.message)
   }
@@ -57,7 +58,8 @@ router.post('/auth/signup', async (req, res) => {
 router.post('/auth/signin', requireSignin, async (req, res) => {
   try {
     const token = User.signin(req.user)
-    res.json({ token })
+    const user = await User.getUser(req.user)
+    return res.json({ token, user })
   } catch (error) {
     res.status(422).send({ error: error.toString() })
   }
@@ -192,17 +194,15 @@ router.post('/user/resend', requireAuth, async (req, res) => {
   }
 })
 
-export default router
-
 /**
  * PUT request to add video to saved playlist by ID
  *  - See src/models.user_model.ts for the User schema
- * 
+ *
  * @headerparam Authorization is the user's token
- * 
+ *
  * @returns success
- * 
- * @errors 
+ *
+ * @errors
  *        401 // if unauthorized
  *        422 // if playlist to add is already in list or playlist to remove is not
  */
@@ -210,8 +210,18 @@ router.put('/user/savePlaylist', requireAuth, async (req, res) => {
   try {
     const saved = await User.savePlaylist(req.user, req.body)
     res.json(saved)
-  }
-  catch (error) {
+  } catch (error) {
     res.status(422).send({ error: error.toString() })
   }
 })
+
+router.post('/user/onboarding', requireAuth, async (req, res) => {
+  try {
+    const onBoarded = await User.onboarding(req.user, req.body)
+    res.json(onBoarded)
+  } catch (error) {
+    res.status(422).send({ error: error.toString() })
+  }
+})
+
+export default router

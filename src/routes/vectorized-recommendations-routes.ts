@@ -1,21 +1,21 @@
 import { Request, Response, Router } from 'express'
-import { requireAdmin } from '../services/passport'
+import { requireAdmin, requireAuth } from '../services/passport'
 import { logger } from '../services/logger'
 
 import * as VectorizedRecControllers from '../controllers/vectorized_recommendation_controllers'
 const vectorizedRecRouter = Router()
 
 /**
- * GET /vectorized-recommendations
+ * GET /recommendations/vectorized
  * 
  * @bodyparam {string} videoId - the videoId of the video to get recommendations from
  * @bodyparam {string} userId - the userId of the user to get recommendations for
  */
-vectorizedRecRouter.get('/vectorized-recommendations', requireAdmin, async (req: Request, res: Response) => {
+vectorizedRecRouter.get('/recommendations/vectorized', requireAuth, async (req: Request, res: Response) => {
   const videoId = req.query?.videoId?.toString() || ""
-  const userId = req.query?.userId?.toString() || ""
+  const user = req.user.id
   try {
-    const results = await VectorizedRecControllers.getVideoRecommendations(videoId, userId)
+    const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
     return res.status(200).json({ results: results })
   } catch (error) {
     logger.error(error)

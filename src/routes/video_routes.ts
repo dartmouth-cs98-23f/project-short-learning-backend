@@ -346,4 +346,24 @@ videoRouter.delete('/videos/:videoId/affinities', async (req, res) => {
   }
 })
 
+/**
+ * GET request to get video summary
+ * - See src/models/video_models.ts for the VideoMetadata schema
+ * 
+ * @pathparam videoId // the videoId of the video to get summary for
+ * 
+ */
+videoRouter.get('/videos/:videoId/summary', requireAuth, async (req, res) => {
+  try {
+    if (!req.params.videoId) {
+      return res.status(422).json({ message: 'videoId is missing' })
+    }
+    const summary = await Video.getVideoSummary(req.params.videoId)
+    return res.json({ summary })
+  }
+  catch (error) {
+    return res.status(422).json({ message: error.toString() })
+  }
+})
+
 export default videoRouter

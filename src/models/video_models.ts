@@ -22,7 +22,7 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
-    youtubeURL: { type: String, required: false},
+    youtubeURL: { type: String, required: false },
     uploadDate: { type: Date, required: true },
     uploader: { type: Schema.Types.ObjectId, required: false },
     duration: { type: Number, required: true },
@@ -61,4 +61,20 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
 export const VideoMetadata = model<VideoMetadataDocument>(
   'VideoMetadata',
   videoMetadataSchema
+)
+
+export interface InferenceSummaryDocument extends Document {
+  inferenceSummary: Object
+}
+
+const inferenceSummarySchema = new Schema<InferenceSummaryDocument>(
+  {
+    inferenceSummary: { type: Object, required: true }
+  },
+  { timestamps: true, collection: 'inference_summary' }
+)
+
+export const InferenceSummary = model<InferenceSummaryDocument>(
+  'InferenceSummary',
+  inferenceSummarySchema
 )
