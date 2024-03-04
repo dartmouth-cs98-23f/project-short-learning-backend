@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import * as WatchHistory from '../controllers/watch_history_controller'
 import { requireAuth, requireAdmin } from '../services/passport'
+import { stat } from 'fs';
 
 const watchHistoryRouter = Router()
 
@@ -146,6 +147,48 @@ watchHistoryRouter.get('/watchhistory/admin', requireAdmin, async (req, res) => 
     res.status(422).json({ error: error.message });
   }
 });
+
+/**
+ * GET Request to get statistics
+ *  - see src/models/watch_history_models.ts for the schema
+ * 
+ * @bodyparam user to get the statistics for 
+ * 
+ * @returns a list of json objects with the statistics for the user
+ * 
+ * @errors 200 if success
+ *         422 if no user
+ *         500 if server error
+ */
+watchHistoryRouter.get('/statistics', requireAuth, async (req, res) => {
+  try {
+    const statistics = await WatchHistory.getStatistics(req.user)
+    res.status(200).json(statistics)
+  } catch (error) {
+    throw new Error(error)
+  }
+})
+
+/**
+ * GET Request to get recent topics viewed
+ *  - see src/models/watch_history_models.ts for the schema
+ * 
+ * @bodyparam user to get the recent topics for 
+ * 
+ * @returns a list of json objects with the recent topics for the user
+ * 
+ * @errors 200 if success
+ *         422 if no watch history
+ *         500 if server error
+ */
+watchHistoryRouter.get('/recentTopics', requireAuth, async (req, res) => {
+  try {
+    const topics = await WatchHistory.getRecentTopics(req.user)
+    res.status(200).json(topics)
+  } catch (error) {
+    throw new Error(error)
+  }
+})
 
 export default watchHistoryRouter
 

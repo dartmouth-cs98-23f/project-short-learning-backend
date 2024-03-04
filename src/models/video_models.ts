@@ -9,7 +9,7 @@ export interface VideoMetadataDocument extends Document {
   uploader: mongoose.Types.ObjectId // userID
   duration: number // Seconds
   thumbnailURL: string // Link to S3
-  topicId: string[],
+  topicId: number[]
   clips: mongoose.Types.ObjectId[]
   views: mongoose.Types.ObjectId[] // Set of unique userIDs
   likes: mongoose.Types.ObjectId[] // Set of unique userIDs

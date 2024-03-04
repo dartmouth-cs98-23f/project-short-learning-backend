@@ -49,6 +49,7 @@ videoRouter.get('/videos/:videoId', requireAuth, async (req, res) => {
  * @bodyparam uploader: string // the uploader of the video
  * @bodyparam tags: string[] // the tags of the video
  * @bodyparam duration: number // the duration of the video
+ * @bodyparam topicId: number[] // topic ID number
  * @bodyparam thumbnailURL: string // the thumbnailURL of the video
  * @bodyparam clipTitles: string[] // the titles of the clips
  * @bodyparam clipTags: string[]string[] // the tags of the clips
