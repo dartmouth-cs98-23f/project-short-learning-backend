@@ -183,8 +183,8 @@ watchHistoryRouter.get('/statistics', requireAuth, async (req, res) => {
  */
 watchHistoryRouter.get('/recentTopics', requireAuth, async (req, res) => {
   try {
-    const statistics = await WatchHistory.getRecentTopics(req.body)
-    res.status(200).json('true')
+    const topics = await WatchHistory.getRecentTopics(req.user)
+    res.status(200).json(topics)
   } catch (error) {
     throw new Error(error)
   }

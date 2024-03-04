@@ -1,6 +1,7 @@
 import WatchHistory from "../models/watch_history_models";
 import { VideoMetadata } from '../models/video_models'
 import UserModel from "../models/user_model";
+import { allTopics } from "../utils/topics";
 
 export const getWatchHistories = async (user, queryParameters) => {
   try {
@@ -137,7 +138,7 @@ const findTopics = async (watchHistory) => {
     }
     
   }
-  return topics.length
+  return topics
 }
 
 export const getStatistics = async ( user ) => {
@@ -163,13 +164,13 @@ export const getStatistics = async ( user ) => {
     let allTopics = await findTopics(allHistory)
 
     let statistics = {statistics:
-                      [{value: `${todayTopics}`,
+                      [{value: `${todayTopics.length}`,
                       item: "topics",
                       timeframe: "today"},
-                      {value: `${weekTopics}`,
+                      {value: `${weekTopics.length}`,
                       item: "topics",
                       timeframe: "this week"},
-                      {value: `${allTopics}`,
+                      {value: `${allTopics.length}`,
                       item: "topics",
                       timeframe: "total"}]
                     }
@@ -180,10 +181,26 @@ export const getStatistics = async ( user ) => {
   }
 }
 
-export const getRecentTopics = async ( {userId} ) => {
+export const getRecentTopics = async ( user ) => {
   try {
+    const isUser = await UserModel.findById(user.id);
+    if(!isUser) {
+      throw new Error("User not found")
+    }
+    const params = { 'date.gt': null, 'date.lt': new Date(), limit: 5 }
+    let history = await getWatchHistories(user, params);
+    let watchedTopics = await findTopics(history)
+    let topics = []
+
+
+    for (let topic of watchedTopics)  {
+      topics.push({topicId: topic,
+                  topicName: allTopics[topic],
+                  })
+    }
     
-    
+    console.log(topics)
+    return {topics: topics}
   } catch (error) {
     throw new Error(error)
   }

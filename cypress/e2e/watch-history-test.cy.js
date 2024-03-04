@@ -233,6 +233,20 @@ describe('Watch History Test', () => {
     })
   })
 
+  it('Getting recent topics', () => {
+    cy.request({
+      method: 'GET',
+      headers: {
+        Authorization: token
+      },
+      url: `${URL}/recentTopics`
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('topics')
+      expect(response.body.topics[1]).to.have.property('topicId')
+    })
+  })
+
   it('Updating the watch date of a specific video', () => {
     cy.request({
       method: 'POST',
