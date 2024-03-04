@@ -99,7 +99,7 @@ searchRouter.get(
       const topicId = req.params.topicId
       const page = req.body.page || 1
       const userId = req.user.id
-      const results = await ExploreController.getTopicExplore(
+      const results = await ExploreController.getTopicVideos(
         userId,
         topicId,
         page

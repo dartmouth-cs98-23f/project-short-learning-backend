@@ -85,3 +85,54 @@ export const roleAffinities = {
     '67': 0.1
   }
 }
+
+export const roleTopics = {
+  Frontend: [
+    '49', // Web Development and Internet Technologies
+    '50', // HTML/CSS
+    '51', // JavaScript
+    '52', // Web application frameworks
+    '53', // RESTful services
+    '54' // Web security
+  ],
+  Backend: [
+    '25', // Database Systems and Management
+    '26', // Relational databases
+    '27', // NoSQL databases
+    '28', // SQL programming
+    '29', // Database design
+    '30' // Transaction management
+  ],
+  ML: [
+    '7', // Artificial Intelligence (AI) and Machine Learning
+    '8', // Neural networks
+    '9', // Reinforcement learning
+    '10', // Natural language processing
+    '11', // Computer vision
+    '12' // Deep learning
+  ],
+  'AI/Data': [
+    '19', // Data Science and Analytics
+    '20', // Statistical methods
+    '21', // Machine learning in analytics
+    '22', // Data visualization
+    '23', // Big data processing
+    '24' // Predictive modeling
+  ],
+  DevOps: [
+    '37', // Programming Languages and Software Development
+    '38', // Object-oriented programming
+    '39', // Functional programming
+    '40', // Software testing
+    '41', // Web development frameworks
+    '42' // Version control systems
+  ],
+  QA: [
+    '1', // Algorithms and Data Structures
+    '2', // Sorting algorithms
+    '3', // Graph theory
+    '4', // Data structures
+    '5', // Dynamic programming
+    '6' // Complexity analysis
+  ]
+}

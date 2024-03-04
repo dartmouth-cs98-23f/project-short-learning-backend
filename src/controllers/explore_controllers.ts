@@ -12,7 +12,7 @@ import algoliasearch from 'algoliasearch'
 import { VideoMetadata } from '../models/video_models'
 import UserModel from '../models/user_model'
 import { Pinecone } from '@pinecone-database/pinecone'
-import { roleAffinities } from '../utils/roles'
+import { roleAffinities, roleTopics } from '../utils/roles'
 import { indexedMap, reverseIndexedMap } from '../utils/topics'
 import UserAffinityModel from '../models/user_affinity_model'
 
@@ -175,7 +175,7 @@ async function accumulateVideos(results: any): Promise<VideoResult[]> {
   return res
 }
 
-export const getTopicRankings = async (userId: string) => {
+export const getTopRoles = async (userId: string) => {
   try {
     const roles = Object.keys(roleAffinities)
     const userAffinityDoc = await UserAffinityModel.findOne({
@@ -202,16 +202,52 @@ export const getTopicRankings = async (userId: string) => {
   }
 }
 
-// To get topic to return, get their {page} % 6 best topic
-export const getExplore = async (userId: string, page: number) => {
+export const getTopTopics = async (userId: string, limit: number) => {
   try {
-    const topic = getTopicRankings(userId)[(page - 1) % 6]
+    const userAffinityDoc = await UserAffinityModel.findOne({
+      userId: userId
+    }).lean()
+    const userAffinities = userAffinityDoc.affinities
+    const sorted = Object.keys(userAffinities).sort(
+      (a, b) => userAffinities[b] - userAffinities[a]
+    )
+    return sorted.slice(0, limit)
   } catch (error) {
     logger.error(error)
   }
 }
+// To get topic to return, get their {page} % 6 best topic
+export const getExplore = async (userId: string, page: number) => {
+  try {
+    const roles = await getTopRoles(userId) // This looks weird, check why QA first tomorrow?
+    const topics = await getTopTopics(userId, page)
+    const topicVideos = await getTopicVideos(userId, topics[page - 1], 1)
+    const roleVideos = await getRoleVideos(userId, roles[page - 1], 1)
+    return { topicVideos, roleVideos }
+  } catch (error) {
+    logger.error(error)
+  }
+}
+
+export const getRoleVideos = async (
+  userId: string,
+  role: string,
+  page: number
+) => {
+  try {
+    const topics = roleTopics[role] 
+    // For all topics, get some user vector to query with
+    // Grab 3 random topics from the role (or use some pagination technique (better))
+    // Query pinecone with the user vector and filter for videos w/ only those topics 
+    // Return the videos mixed 
+    
+  } catch (error) {
+    logger.error(error)
+  }
+}
+
 // TODO: CACHING AND USER HISTORY
-export const getTopicExplore = async (
+export const getTopicVideos = async (
   userId: string,
   topicId: string,
   page: number
