@@ -9,8 +9,8 @@ const searchRouter = Router()
 /**
  * GET /explore/search/videos
  *
- * @bodyparam {string} q - the search query
- * @bodyparam {string} topic - the topic to search for
+ * @queryparam {string} q - the search query
+ * @queryparam {string} topic - the topic to search for
  *
  * NOTE: It is okay to provide one or the other, but at least one must be provided.
  *
@@ -61,7 +61,7 @@ searchRouter.get(
 /**
  * GET /explore/explorepage
  *
- * @bodyparam {number} page - the page number to get
+ * @queryparam {string} page - the page number to get
  *
  * Used for the explore page.
  */
@@ -71,7 +71,7 @@ searchRouter.get(
   async (req: Request, res: Response) => {
     try {
       const userId = req.user.id
-      const page = req.body.page || 1
+      const page = parseInt(req.query.page?.toString()) || 1
 
       const roles = await ExploreController.getTopRoles(userId) // This looks weird, check why QA first tomorrow?
       const role = roles[(page - 1) % roles.length]
@@ -113,7 +113,7 @@ searchRouter.get(
  * GET /explore/topicpage/:topic
  *
  * @pathparam {string} topic - the topic to search for
- * @bodyparam {number} page - the page number to get
+ * @queryparam {string} page - the page number to get
  *
  * Used to get the explore page of a specific topic.
  *
@@ -127,7 +127,7 @@ searchRouter.get(
   async (req: Request, res: Response) => {
     try {
       const topicId = req.params.topicId
-      const page = req.body.page || 1
+      const page = parseInt(req.query.page?.toString() || '1')
       const userId = req.user.id
       const results = await ExploreController.getTopicVideos(
         userId,
