@@ -5,6 +5,8 @@ import { sendEmail } from '../utils/sendEmail'
 import UserModel from '../models/user_model'
 import { logger } from '../services/logger'
 import { Types } from 'mongoose'
+import { indexedMap, allTopics } from '../utils/topics'
+import { roleAffinities, roles } from '../utils/roles'
 
 export const signin = (user) => {
   return tokenForUser(user)
@@ -160,18 +162,18 @@ export const verifyUser = async (user, { emailVerificationCode }) => {
 export const savePlaylist = async (user, { playlistId, saved }) => {
   try {
     const userToSave = await User.findById(user.id)
-    let videoIndex = userToSave.savedPlaylists.indexOf(playlistId);
+    let videoIndex = userToSave.savedPlaylists.indexOf(playlistId)
     let playlist = new Types.ObjectId(playlistId)
     if (saved == true) {
       if (videoIndex == -1) {
-        console.log("Adding to list")
-        userToSave.savedPlaylists.push(playlist); // Update the array
+        console.log('Adding to list')
+        userToSave.savedPlaylists.push(playlist) // Update the array
       } else {
-        throw new Error("Playlist to save already in list")
+        throw new Error('Playlist to save already in list')
       }
     } else if (saved == false) {
       if (videoIndex !== -1) {
-        userToSave.savedPlaylists.splice(videoIndex, 1); // Update the array
+        userToSave.savedPlaylists.splice(videoIndex, 1) // Update the array
       } else {
         throw new Error('Playlist to delete is not in list')
       }
@@ -179,8 +181,64 @@ export const savePlaylist = async (user, { playlistId, saved }) => {
       throw new Error('Invalid toSave boolean')
     }
 
-    await userToSave.save(); // Save the updated document
-    return true;
+    await userToSave.save() // Save the updated document
+    return true
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+export const onboarding = async (user, body) => {
+  try {
+    const userId = user.id
+    const roles: string[] = body.roles
+    const values: number[] = body.values
+    const topics: string[] = body.topics     // TODO TOPICS:
+    const complexity: number = body.complexity
+    const userDoc = await User.findById(userId)
+    // create doc if it doesnt exist, always remake when this is called
+    
+    const affinities = {}
+    const complexities = {}
+
+    for (const topic in allTopics) {
+      affinities[topic] = 0
+      complexities[topic] = complexity
+    }
+
+    for (let i = 0; i < roles.length; i++) {
+      const role = roles[i]
+      const value = values[i]
+      const roleTopicScalars: Record<string, number> = roleAffinities[role]
+      for (const topic in roleTopicScalars) {
+        affinities[topic] += value * roleTopicScalars[topic]
+        for (let j = 0; j < indexedMap[topic].length; j++) {
+          affinities[indexedMap[topic][j]] += value * roleTopicScalars[topic]
+        }
+      }
+    }
+
+    // Scale to be between 0 and 1
+    for (const topic in allTopics) {
+      affinities[topic] = affinities[topic] / roles.length
+      complexities[topic] = complexity
+    }
+    logger.silly(`User affinities: ${JSON.stringify(affinities)}`)
+  
+    // Load complexities for each topic to be equal to this base value
+    // Load affinities for each topic to be based on their selected topic ()
+
+    const newUserAffinity = new UserAffinity({
+      userId: userId,
+      affinities,
+      complexities,
+    })
+    userDoc.onBoardingStatus = true
+
+    // Fill in user affinity later
+    await newUserAffinity.save()
+    await userDoc.save()
+    return user
   } catch (error) {
     throw new Error(error)
   }
