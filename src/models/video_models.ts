@@ -16,6 +16,7 @@ export interface VideoMetadataDocument extends Document {
   dislikes: mongoose.Types.ObjectId[] // Set of unique userIDs
   isVectorized: boolean
   isClipped: boolean
+  inferenceTopicIds: number[]
 }
 
 const videoMetadataSchema = new Schema<VideoMetadataDocument>(
@@ -49,7 +50,8 @@ const videoMetadataSchema = new Schema<VideoMetadataDocument>(
       validate: [arrayHasNoDuplicates, 'Duplicate values not allowed.']
     },
     isVectorized: { type: Boolean, required: false },
-    isClipped: { type: Boolean, required: false }
+    isClipped: { type: Boolean, required: false },
+    inferenceTopicIds: { type: [Number], required: false }
   },
   { timestamps: true, collection: 'video_metadata' }
 )

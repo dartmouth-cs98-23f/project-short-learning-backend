@@ -1,0 +1,1 @@
+export const affinityDecay = 0.9;

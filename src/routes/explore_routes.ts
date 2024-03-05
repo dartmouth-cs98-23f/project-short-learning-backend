@@ -9,8 +9,9 @@ const searchRouter = Router()
 /**
  * GET /explore/search/videos
  *
- * @queryparam {string} q - the search query
- * @queryparam {string} topic - the topic to search for
+ * @bodyparam {string} q - the search query
+ * @bodyparam {string} topic - the topic to search for
+ * @queryparam {string} user - the user to search for
  *
  * NOTE: It is okay to provide one or the other, but at least one must be provided.
  *
