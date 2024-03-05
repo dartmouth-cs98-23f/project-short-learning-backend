@@ -6,7 +6,6 @@ interface WatchHistoryDocument extends Document {
   videoId: Types.ObjectId;
   clipId: Types.ObjectId;
   duration: number;
-  isActive: boolean;
 }
 
 const WatchHistorySchema = new Schema(
@@ -16,7 +15,6 @@ const WatchHistorySchema = new Schema(
     videoId: { type: Schema.Types.ObjectId, ref: 'VideoMetadata', required: true },
     clipId: { type: Schema.Types.ObjectId, ref: 'Clip', required: false },
     duration: { type: Number, required: true },
-    isActive: { type: Boolean, default: false },
   },
   {
     toObject: { virtuals: true },
@@ -27,7 +25,6 @@ const WatchHistorySchema = new Schema(
 
 WatchHistorySchema.index({ userId: 1, videoId: 1 }, { unique: true });
 WatchHistorySchema.index({ date: 1 });
-WatchHistorySchema.index({ isActive: 1 });
 
 const WatchHistoryModel = mongoose.model<WatchHistoryDocument>('WatchHistory', WatchHistorySchema);
 
