@@ -19,6 +19,7 @@ import {
   TopicMetadata,
   TopicMetadataDocument
 } from '../models/topic_models'
+import { CLIP_POP_LIMIT } from '../utils/globals'
 
 export const getPrecomputedRecommendationDocument = async (
   req: Request<{}, {}, {}, GetPrecomputedQueryParams>,
@@ -179,7 +180,8 @@ export const getPlaylistRecommendation = async (
     const playlist: VideoMetadataDocument = await VideoMetadata.findById(
       playlistIds[i]
     )
-      .populate('clips')
+      .populate({ path: 'clips', options: { limit: CLIP_POP_LIMIT } })
+
       .exec()
     if (!playlist) {
       logger.warn(`No playlist found playlistID: ${playlistIds[i]}`)

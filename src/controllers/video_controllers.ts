@@ -4,6 +4,7 @@ import { ClipMetadata } from '../models/clip_models'
 import { Comment } from '../models/comment_model'
 import { logger } from '../services/logger'
 import { topicToVideoMap } from '../technigala/map_model'
+import { CLIP_POP_LIMIT } from '../utils/globals'
 
 const MAX_COMMENT_LENGTH = 500
 
@@ -14,7 +15,7 @@ export const getVideoById = async (req: Request, res: Response) => {
   }
   // populate clips field
   const metadata = await VideoMetadata.findById(videoId)
-    .populate('clips')
+    .populate({ path: 'clips', options: { limit: CLIP_POP_LIMIT } })
     .exec()
 
   if (!metadata) {

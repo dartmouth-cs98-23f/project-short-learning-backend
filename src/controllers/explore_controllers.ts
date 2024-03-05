@@ -15,6 +15,7 @@ import { Pinecone } from '@pinecone-database/pinecone'
 import { roleAffinities, roleTopics } from '../utils/roles'
 import { indexedMap, reverseIndexedMap } from '../utils/topics'
 import UserAffinityModel from '../models/user_affinity_model'
+import { CLIP_POP_LIMIT } from '../utils/globals'
 
 const PAGE_SIZE = 8
 
@@ -158,7 +159,8 @@ async function accumulateVideos(results: any): Promise<VideoResult[]> {
   const res = await Promise.all(
     results.map(async (hit: any) => {
       return await VideoMetadata.findById(hit.objectID)
-        .populate('clips')
+        .populate({ path: 'clips', options: { limit: CLIP_POP_LIMIT } })
+
         .exec()
         .then((metadata) => {
           return {
@@ -221,8 +223,16 @@ export const getExplore = async (userId: string, page: number) => {
   try {
     const roles = await getTopRoles(userId) // This looks weird, check why QA first tomorrow?
     const topics = await getTopTopics(userId, page)
-    const topicVideos = await getTopicVideos(userId, topics[(page - 1) % topics.length], 1)
-    const roleVideos = await getRoleVideos(userId, roles[(page - 1) % roles.length], 1)
+    const topicVideos = await getTopicVideos(
+      userId,
+      topics[(page - 1) % topics.length],
+      1
+    )
+    const roleVideos = await getRoleVideos(
+      userId,
+      roles[(page - 1) % roles.length],
+      1
+    )
     return { roleVideos, topicVideos }
   } catch (error) {
     logger.error(error)
@@ -236,7 +246,7 @@ export const getRoleVideos = async (
 ) => {
   try {
     const videosPerTopic = 4
-    const topics = roleTopics[role] 
+    const topics = roleTopics[role]
     logger.debug(topics)
     // Grab top two topics based on page TODO LATER IF LONG SCROLL
     // const topic1 = topics[(page - 1) % roleTopics.length * 2 % topics.length]
@@ -247,11 +257,10 @@ export const getRoleVideos = async (
 
     const topic1Videos = await getTopicVideos(userId, topic1, 1, videosPerTopic)
     const topic2Videos = await getTopicVideos(userId, topic2, 1, videosPerTopic)
-    
+
     const videos = topic1Videos.concat(topic2Videos)
 
     return videos
-    
   } catch (error) {
     logger.error(error)
   }
@@ -283,7 +292,8 @@ export const getTopicVideos = async (
       searchResponse.matches.map(async (match) => {
         const videoId = match.id.slice(0, -4)
         const metadata = await VideoMetadata.findById(videoId)
-          .populate('clips')
+          .populate({ path: 'clips', options: { limit: 10 } })
+
           .exec()
         return metadata
       })
