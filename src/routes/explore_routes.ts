@@ -62,7 +62,7 @@ searchRouter.get(
 /**
  * GET /explore/explorepage
  *
- * @bodyparam {number} page - the page number to get
+ * @queryparam {string} page - the page number to get
  *
  * Used for the explore page.
  */
@@ -72,7 +72,7 @@ searchRouter.get(
   async (req: Request, res: Response) => {
     try {
       const userId = req.user.id
-      const page = req.body.page || 1
+      const page = parseInt(req.query.page?.toString()) || 1
 
       const roles = await ExploreController.getTopRoles(userId) // This looks weird, check why QA first tomorrow?
       const role = roles[(page - 1) % roles.length]
@@ -97,8 +97,8 @@ searchRouter.get(
       
       return res.status(200).json({
         topicVideos: [
-          { topic: topicName1, videos: topicVideos1 },
-          { topic: topicName2, videos: topicVideos2 }
+          { topic: topicName1, topicId: topic1, videos: topicVideos1 },
+          { topic: topicName2, topicId: topic2, videos: topicVideos2 }
         ],
         roleVideos: [{ role, videos: roleVideos }],
         page
@@ -114,7 +114,7 @@ searchRouter.get(
  * GET /explore/topicpage/:topic
  *
  * @pathparam {string} topic - the topic to search for
- * @bodyparam {number} page - the page number to get
+ * @queryparam {string} page - the page number to get
  *
  * Used to get the explore page of a specific topic.
  *
@@ -128,7 +128,7 @@ searchRouter.get(
   async (req: Request, res: Response) => {
     try {
       const topicId = req.params.topicId
-      const page = req.body.page || 1
+      const page = parseInt(req.query.page?.toString() || '1')
       const userId = req.user.id
       const results = await ExploreController.getTopicVideos(
         userId,
