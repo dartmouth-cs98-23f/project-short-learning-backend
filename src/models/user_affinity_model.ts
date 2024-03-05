@@ -20,7 +20,7 @@ export interface UserAffinityDocument extends mongoose.Document {
 
 const UserAffinitySchema = new Schema<UserAffinityDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
     affinities: { type: Map, of: Number, required: false },
     complexities: { type: Map, of: Number, required: false },
     activeAffinities: {

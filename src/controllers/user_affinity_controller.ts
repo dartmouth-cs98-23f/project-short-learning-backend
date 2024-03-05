@@ -7,20 +7,22 @@ const fs = require('fs')
 const fileContent = fs.readFileSync('src/utils/affinityTruthTable', 'utf8')
 const affinitiesTruthTable = fileContent.split(/[\r\n]+/)
 
-export const createUserAffinities = async (user, { affinities, complexities }) => {
+export const createUserAffinities = async (
+  user,
+  { affinities, complexities }
+) => {
   try {
     const existingUserAffinity = await UserAffinity.findOne({
       userId: user._id
     })
-    if (existingUserAffinity) {
-      throw new Error('User affinities already exists')
-    }
-
-    const userAffinity = new UserAffinity({
+    var userAffinity = new UserAffinity({
       userId: user._id,
       affinities: {},
       complexities: {}
     })
+    if (existingUserAffinity) {
+      userAffinity = existingUserAffinity
+    }
 
     if (affinities) {
       for (const [key, value] of Object.entries(affinities)) {
@@ -28,7 +30,9 @@ export const createUserAffinities = async (user, { affinities, complexities }) =
           throw new Error(`Invalid topic ID: ${key}`)
         }
         if (typeof value !== 'number') {
-          throw new Error(`Expected a number for affinity value, but got a ${typeof value}`);
+          throw new Error(
+            `Expected a number for affinity value, but got a ${typeof value}`
+          )
         }
         if (value < 0 || value > 1) {
           throw new Error(`Invalid affinity value: ${value}`)
@@ -43,7 +47,9 @@ export const createUserAffinities = async (user, { affinities, complexities }) =
           throw new Error(`Invalid topic ID: ${key}`)
         }
         if (typeof value !== 'number') {
-          throw new Error(`Expected a number for complexity value, but got a ${typeof value}`);
+          throw new Error(
+            `Expected a number for complexity value, but got a ${typeof value}`
+          )
         }
         if (value < 0 || value > 1) {
           throw new Error(`Invalid complexity value: ${value}`)
@@ -68,7 +74,10 @@ export const getUserAffinities = async (user) => {
   }
 }
 
-export const updateUserAffinities = async (user, { affinities, complexities }) => {
+export const updateUserAffinities = async (
+  user,
+  { affinities, complexities }
+) => {
   try {
     const userAffinity = await UserAffinity.findOne({ userId: user._id })
     if (!userAffinity) {
@@ -81,7 +90,9 @@ export const updateUserAffinities = async (user, { affinities, complexities }) =
           throw new Error(`Invalid topic ID: ${key}`)
         }
         if (typeof value !== 'number') {
-          throw new Error(`Expected a number for affinity value, but got a ${typeof value}`);
+          throw new Error(
+            `Expected a number for affinity value, but got a ${typeof value}`
+          )
         }
         if (value < 0 || value > 1) {
           throw new Error(`Invalid affinity value: ${value}`)
@@ -96,7 +107,9 @@ export const updateUserAffinities = async (user, { affinities, complexities }) =
           throw new Error(`Invalid topic ID: ${key}`)
         }
         if (typeof value !== 'number') {
-          throw new Error(`Expected a number for complexity value, but got a ${typeof value}`);
+          throw new Error(
+            `Expected a number for complexity value, but got a ${typeof value}`
+          )
         }
         if (value < 0 || value > 1) {
           throw new Error(`Invalid complexity value: ${value}`)
@@ -127,12 +140,14 @@ export const deleteUserAffinities = async (user) => {
 
 export const adminGetUserAffinities = async ({ userId }) => {
   try {
-    const user = await UserModel.findById(userId);
+    const user = await UserModel.findById(userId)
     if (!user) {
       throw new Error('User not found')
     }
-    return getUserAffinities(user);
+    return getUserAffinities(user)
   } catch (error) {
-    throw new Error(`Get user affinities with admin permissions error: ${error}`)
+    throw new Error(
+      `Get user affinities with admin permissions error: ${error}`
+    )
   }
 }
