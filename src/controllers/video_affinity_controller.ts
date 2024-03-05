@@ -1,3 +1,5 @@
+import { log } from 'console'
+import UserAffinityModel from '../models/user_affinity_model'
 import VideoAffinity from '../models/video_affinity_model'
 import { VideoMetadata } from '../models/video_models'
 import { logger } from '../services/logger'
@@ -211,7 +213,71 @@ export const generateVideoAffinities = async (videoId) => {
     } else {
       updateVideoAffinities(videoId, { affinities, complexities })
     }
+    return
   } catch (error) {
     throw new Error(`Generate video affinities error: ${error}`)
   }
+}
+
+// Check the active affinities
+export const updateGlobalAffinity = async (userId, videoId) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId: userId })
+  const activeAffinities = userAffinity.activeAffinities
+  const affinities = userAffinity.affinities
+  logger.debug(userAffinity)
+
+  if (activeAffinities.length === 0) {
+    return
+  }
+  const delta = {}
+  for (const topic in allTopics) {
+    delta[topic] = 0
+  }
+  // for each entry in active affinities call mongodb for its videoId
+  await Promise.all(
+    Object.entries(activeAffinities).map(async ([index, affinityObject]) => {
+      await generateVideoAffinities(affinityObject.videoId)
+
+      const videoAffinity = await VideoAffinity.findOne({
+        videoId: affinityObject.videoId
+      })
+
+      if (!videoAffinity) return // Ensure videoAffinity exists before proceeding
+
+      for (const topic in allTopics) {
+        const value = (await videoAffinity.affinities.get(topic)) || 0 // Assuming affinities.get is async and fallback to 0 if undefined
+        if (value != 0) {
+          logger.debug(`Value: ${value}, Modifier: ${affinityObject.modifier}`)
+        }
+        delta[topic] += value * affinityObject.modifier
+        if (delta[topic] > 0) {
+          logger.debug(`Delta: ${delta[topic]}`)
+        }
+      }
+    })
+  )
+
+  const newAffinities = {}
+  // Modify by delta
+  for (const topic in allTopics) {
+    newAffinities[topic] = Math.min(1, (affinities.get(topic) + delta[topic]*.15))
+  }
+
+  // Update the user affinity
+  const updatedUserAffinity = await UserAffinityModel.findOneAndUpdate(
+    { userId: userId },
+    { affinities: newAffinities },
+    { new: true }
+  )
+
+  return updatedUserAffinity
+}
+
+export const resetActiveAffinities = async (userId) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId: userId })
+  userAffinity.activeAffinities = []
+  userAffinity.activeTopics = []
+  const updatedUserAffinity = await userAffinity.save()
+
+  return updatedUserAffinity
 }
