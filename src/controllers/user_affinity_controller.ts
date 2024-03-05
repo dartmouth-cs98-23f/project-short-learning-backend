@@ -265,4 +265,4 @@ export const updateAffinityOnTooEasy = async (userId, videoId) => {
   }
   userAffinity.save()
   return userAffinity
-  
+}

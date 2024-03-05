@@ -3,6 +3,7 @@ import { requireAdmin, requireAuth } from '../services/passport'
 import { logger } from '../services/logger'
 
 import * as VectorizedRecControllers from '../controllers/vectorized_recommendation_controllers'
+import VideoAffinityModel from '../models/video_affinity_model'
 const vectorizedRecRouter = Router()
 
 
@@ -30,6 +31,7 @@ vectorizedRecRouter.get('/recommendations/vectorized', requireAuth, async (req: 
   const videoId = req.query?.videoId?.toString() || ""
   const user = req.user.id
   try {
+    // const updateAffinity = await VideoAffinityModel.updateUserAffinity(user, videoId)
     const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
     return res.status(200).json({ results: results })
   } catch (error) {
