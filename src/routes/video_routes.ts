@@ -3,6 +3,8 @@ import * as Video from '../controllers/video_controllers'
 import * as VideoAffinity from '../controllers/video_affinity_controller'
 import { logger } from '../services/logger'
 import { requireAdmin, requireAuth } from '../services/passport'
+import UserAffinityModel from '../models/user_affinity_model'
+import { updateAffinityOnDislike, updateAffinityOnLike, updateAffinityOnTooEasy, updateAffinityOnTooHard } from '../controllers/user_affinity_controller'
 const videoRouter = Router()
 
 /**
@@ -112,7 +114,51 @@ videoRouter.delete('/videos/:videoId', requireAdmin, async (req, res) => {
  */
 videoRouter.post('/videos/:videoId/like', requireAuth, async (req, res) => {
   try {
-    return await Video.addLike(req, res)
+    const videoId = req.params.videoId
+    const userId = req.user.id
+    if (!videoId) {
+      return res.status(422).json({ message: 'Missing videoId parameter' })
+    }
+    const userAffinity = await updateAffinityOnLike(
+      req.user.id,
+      req.params.videoId
+    )
+    const addLike = await Video.addLike(req, res)
+    return res.json({ addLike, userAffinity })
+  } catch (error) {
+    return res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+videoRouter.post('/videos/:videoId/toohard', requireAuth, async (req, res) => {
+  try {
+    const videoId = req.params.videoId
+    const userId = req.user.id
+    if (!videoId) {
+      return res.status(422).json({ message: 'Missing videoId parameter' })
+    }
+    const userAffinity = await updateAffinityOnTooHard(
+      req.user.id,
+      req.params.videoId
+    )
+    return res.json({ userAffinity })
+  } catch (error) {
+    return res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+videoRouter.post('/videos/:videoId/tooeasy', requireAuth, async (req, res) => {
+  try {
+    const videoId = req.params.videoId
+    const userId = req.user.id
+    if (!videoId) {
+      return res.status(422).json({ message: 'Missing videoId parameter' })
+    }
+    const userAffinity = await updateAffinityOnTooEasy(
+      req.user.id,
+      req.params.videoId
+    )
+    return res.json({ userAffinity })
   } catch (error) {
     return res.status(500).json({ message: 'Server Error' })
   }
@@ -134,7 +180,16 @@ videoRouter.post('/videos/:videoId/like', requireAuth, async (req, res) => {
  */
 videoRouter.post('/videos/:videoId/dislike', requireAuth, async (req, res) => {
   try {
-    return await Video.addDislike(req, res)
+    const videoId = req.params.videoId
+    if (!videoId) {
+      return res.status(422).json({ message: 'Missing videoId parameter' })
+    }
+    const userAffinity = await updateAffinityOnDislike(
+      req.user.id,
+      req.params.videoId
+    )
+    const addDislike = await Video.addDislike(req, res)
+    return res.json({ addDislike, userAffinity })
   } catch (error) {
     return res.status(500).json({ message: 'Server Error' })
   }
@@ -349,9 +404,9 @@ videoRouter.delete('/videos/:videoId/affinities', async (req, res) => {
 /**
  * GET request to get video summary
  * - See src/models/video_models.ts for the VideoMetadata schema
- * 
+ *
  * @pathparam videoId // the videoId of the video to get summary for
- * 
+ *
  */
 videoRouter.get('/videos/:videoId/summary', requireAuth, async (req, res) => {
   try {
@@ -360,8 +415,7 @@ videoRouter.get('/videos/:videoId/summary', requireAuth, async (req, res) => {
     }
     const summary = await Video.getVideoSummary(req.params.videoId)
     return res.json({ summary })
-  }
-  catch (error) {
+  } catch (error) {
     return res.status(422).json({ message: error.toString() })
   }
 })

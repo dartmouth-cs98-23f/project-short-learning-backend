@@ -188,10 +188,10 @@ export const addLike = async (req: Request, res: Response) => {
   logger.debug(metadata.likes)
   logger.debug(metadata.likes.length)
 
-  return res.json({
+  return {
     message: 'Like successful',
     likes: metadata.likes.length
-  })
+  }
 }
 
 export const addDislike = async (req: Request, res: Response) => {
@@ -212,10 +212,10 @@ export const addDislike = async (req: Request, res: Response) => {
     return res.status(404).json({ message: 'Video not found' })
   }
 
-  return res.json({
+  return {
     message: 'Dislike successful',
     dislikes: metadata.dislikes.length
-  })
+  }
 }
 
 export const getComments = async (req: Request, res: Response) => {
@@ -378,7 +378,6 @@ export const addLikeToComment = async (req: Request, res: Response) => {
 }
 
 export const getVideoSummary = async (videoId: string) => {
-
   const inferenceSummary = await InferenceSummary.findOne({ _id: videoId })
   return inferenceSummary
 }
