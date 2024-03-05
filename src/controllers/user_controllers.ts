@@ -7,6 +7,7 @@ import { logger } from '../services/logger'
 import { Types } from 'mongoose'
 import { indexedMap, allTopics } from '../utils/topics'
 import { roleAffinities, roles } from '../utils/roles'
+import { createUserAffinities } from './user_affinity_controller'
 
 export const signin = (user) => {
   return tokenForUser(user)
@@ -227,17 +228,8 @@ export const onboarding = async (user, body) => {
     // Load complexities for each topic to be equal to this base value
     // Load affinities for each topic to be based on their selected topic ()
 
-    const newUserAffinity = new UserAffinity({
-      userId: userId,
-      affinities,
-      complexities
-    })
-    userDoc.onBoardingStatus = true
-
-    // Fill in user affinity later
-    await newUserAffinity.save()
-    await userDoc.save()
-    return user
+    const savedUserAffinity = createUserAffinities(user, { affinities, complexities })
+    return savedUserAffinity 
   } catch (error) {
     throw new Error(error)
   }
