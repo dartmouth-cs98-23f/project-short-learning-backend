@@ -1,5 +1,10 @@
+import UserAffinityModel from '../models/user_affinity_model'
 import UserAffinity from '../models/user_affinity_model'
 import UserModel from '../models/user_model'
+import VideoAffinityModel from '../models/video_affinity_model'
+import { VideoMetadata } from '../models/video_models'
+import { logger } from '../services/logger'
+import { generateVideoAffinities } from './video_affinity_controller'
 
 // import the list of strings from src\utils\affinityTruthTable and make it a truth table for the affinity topics
 const fs = require('fs')
@@ -151,3 +156,113 @@ export const adminGetUserAffinities = async ({ userId }) => {
     )
   }
 }
+
+/**
+ * Used when a video is liked by a user. Automatically sets the affinity to 1.
+ *
+ * @param userId
+ * @param videoId
+ */
+export const updateAffinityOnLike = async (userId, videoId) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId })
+  const video = await VideoMetadata.findById(videoId)
+  if (!userAffinity) {
+    throw new Error('User affinity not found')
+  }
+  if (!video) {
+    throw new Error('Video not found')
+  }
+
+  const activeAffinities = userAffinity.activeAffinities
+
+  const index = activeAffinities.findIndex(
+    (affinity) => affinity.videoId == videoId
+  )
+  const modifier = 1
+  // Update Modifier to 1
+  if (index == -1) {
+    userAffinity.activeAffinities.push({
+      modifier,
+      videoId,
+      timestamp: Date.now()
+    })
+  } else {
+    userAffinity.activeAffinities[index].modifier = modifier
+  }
+  userAffinity.save()
+  return userAffinity
+}
+
+export const updateAffinityOnDislike = async (userId, videoId) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId })
+  const video = await VideoMetadata.findById(videoId)
+  if (!userAffinity) {
+    throw new Error('User affinity not found')
+  }
+  if (!video) {
+    throw new Error('Video not found')
+  }
+
+  const activeAffinities = userAffinity.activeAffinities
+
+  const index = activeAffinities.findIndex(
+    (affinity) => affinity.videoId == videoId
+  )
+  const modifier = 0
+  // Update Modifier to 0
+  if (index == -1) {
+    userAffinity.activeAffinities.push({
+      modifier,
+      videoId,
+      timestamp: Date.now()
+    })
+  } else {
+    userAffinity.activeAffinities[index].modifier = modifier
+  }
+  userAffinity.save()
+  return userAffinity
+}
+
+export const updateAffinityOnTooHard = async (userId, videoId) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId })
+  const video = await VideoMetadata.findById(videoId)
+  if (!userAffinity) {
+    throw new Error('User affinity not found')
+  }
+  if (!video) {
+    throw new Error('Video not found')
+  }
+
+  const complexities = userAffinity.complexities
+
+  // loop through all complexities and reduce them by 0.1, but not below 0
+  for (const [key, value] of complexities) {
+    if (value > 0) {
+      complexities.set(key, Math.max(value - 0.1, 0))
+    }
+  }
+  userAffinity.save()
+  return userAffinity
+}
+
+export const updateAffinityOnTooEasy = async (userId, videoId) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId })
+  const video = await VideoMetadata.findById(videoId)
+  if (!userAffinity) {
+    throw new Error('User affinity not found')
+  }
+  if (!video) {
+    throw new Error('Video not found')
+  }
+
+  const complexities = userAffinity.complexities
+
+  // loop through all complexities and increase them by 0.1, but not above 1
+  for (const [key, value] of complexities) {
+    if (value < 1) {
+      complexities.set(key, Math.min(value + 0.1, 1))
+    }
+  }
+  userAffinity.save()
+  return userAffinity
+  
