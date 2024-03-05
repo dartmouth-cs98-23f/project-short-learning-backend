@@ -44,36 +44,15 @@ export const getDashboardData = async (user, queryParameters) => {
     //     }
     //   }
     // }
-    const userAffinities = await UserAffinityModel.findOne({ userId: user._id })
 
-    const values = {}
-    roles.forEach((role) => {
-      Object.entries(roleAffinities[role]).forEach(([i, value]) => {
-        if (!values[role]) {
-          values[role] = 0
-        }
-        values[role] += value as number * userAffinities.affinities.get(i)
-      })
-    })
-    logger.debug(`values: ${values}`)
-    const valueArray = []
-    roles.forEach((role) => {
-      valueArray.push(values[role])
-      logger.debug(`role: ${role}, value: ${values[role]}`)
-    })
-    const normalizedArray = featureNormalize(valueArray)
-    const modifierArray = normalizedArray.map((value) => {
-      return value / 3
-    })
-    // add normalized and modifier
-    logger.info(`normalizedArray: ${valueArray}`)
-    logger.info(`modifierArray: ${modifierArray}`)
-    const interestArray = []
-    for (let i = 0; i < roles.length; i++) {
-      interestArray.push(valueArray[i]/10 + modifierArray[i])  
+    const interestArray = await getRoleAffinities(user)
+    const interestArrayComplexity = await getRoleComplexities(user)
+
+    return {
+      roles,
+      values: interestArray.values,
+      valuesComplexity: interestArrayComplexity.values
     }
-
-    return { roles, values: interestArray }
   } catch (error) {
     throw new Error(`Get dashboard data error: ${error}`)
   }
@@ -90,5 +69,76 @@ export const adminGetDashboardData = async ({ userId }, query) => {
     return getDashboardData(user, query)
   } catch (error) {
     throw new Error(`Error getting watch history: ${error}`)
+  }
+}
+
+export const getRoleAffinities = async (user) => {
+  const userAffinities = await UserAffinityModel.findOne({ userId: user._id })
+  const values = {}
+  roles.forEach((role) => {
+    Object.entries(roleAffinities[role]).forEach(([i, value]) => {
+      if (!values[role]) {
+        values[role] = 0
+      }
+      values[role] += (value as number) * userAffinities.affinities.get(i)
+    })
+  })
+  logger.debug(`values: ${values}`)
+  const valueArray = []
+  roles.forEach((role) => {
+    valueArray.push(values[role])
+  })
+  const normalizedArray = featureNormalize(valueArray)
+  const modifierArray = normalizedArray.map((value) => {
+    return value / 3
+  })
+  // add normalized and modifier
+  logger.info(`normalizedArray: ${valueArray}`)
+  logger.info(`modifierArray: ${modifierArray}`)
+  const interestArray = []
+  for (let i = 0; i < roles.length; i++) {
+    interestArray.push(valueArray[i] / 10 + modifierArray[i])
+  }
+
+  return {
+    roles,
+    values: interestArray
+  }
+}
+
+export const getRoleComplexities = async (user) => {
+  const userAffinities = await UserAffinityModel.findOne({ userId: user._id })
+
+  const valuesComplexity = {}
+  roles.forEach((role) => {
+    Object.entries(roleAffinities[role]).forEach(([i, value]) => {
+      if (!valuesComplexity[role]) {
+        valuesComplexity[role] = 0
+      }
+      valuesComplexity[role] +=
+        (value as number) * userAffinities.complexities.get(i)
+    })
+  })
+  logger.debug(`valuesComplexity: ${valuesComplexity}`)
+  const valueArrayComplexity = []
+  roles.forEach((role) => {
+    valueArrayComplexity.push(valuesComplexity[role])
+  })
+  const normalizedArrayComplexity = featureNormalize(valueArrayComplexity)
+  const modifierArrayComplexity = normalizedArrayComplexity.map((value) => {
+    return value / 3
+  })
+  // add normalized and modifier
+  logger.info(`normalizedArrayComplexity: ${normalizedArrayComplexity}`)
+  logger.info(`modifierArrayComplexity: ${modifierArrayComplexity}`)
+  const interestArrayComplexity = []
+  for (let i = 0; i < roles.length; i++) {
+    interestArrayComplexity.push(
+      normalizedArrayComplexity[i] / 10 + modifierArrayComplexity[i]
+    )
+  }
+  return {
+    roles,
+    values: interestArrayComplexity
   }
 }
