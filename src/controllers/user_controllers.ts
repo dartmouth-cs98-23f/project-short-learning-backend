@@ -166,7 +166,7 @@ export const savePlaylist = async (user, { playlistId, saved }) => {
     let playlist = new Types.ObjectId(playlistId)
     if (saved == true) {
       if (videoIndex == -1) {
-        userToSave.savedPlaylists.push(playlist); // Update the array
+        userToSave.savedPlaylists.push(playlist) // Update the array
       } else {
         throw new Error('Playlist to save already in list')
       }
@@ -192,11 +192,11 @@ export const onboarding = async (user, body) => {
     const userId = user.id
     const roles: string[] = body.roles
     const values: number[] = body.values
-    const topics: string[] = body.topics     // TODO TOPICS:
+    const topics: string[] = body.topics // TODO TOPICS:
     const complexity: number = body.complexity
     const userDoc = await User.findById(userId)
     // create doc if it doesnt exist, always remake when this is called
-    
+
     const affinities = {}
     const complexities = {}
 
@@ -223,14 +223,14 @@ export const onboarding = async (user, body) => {
       complexities[topic] = complexity
     }
     logger.silly(`User affinities: ${JSON.stringify(affinities)}`)
-  
+
     // Load complexities for each topic to be equal to this base value
     // Load affinities for each topic to be based on their selected topic ()
 
     const newUserAffinity = new UserAffinity({
       userId: userId,
       affinities,
-      complexities,
+      complexities
     })
     userDoc.onBoardingStatus = true
 

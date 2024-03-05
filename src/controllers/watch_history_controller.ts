@@ -2,6 +2,13 @@ import WatchHistory from '../models/watch_history_models'
 import { VideoMetadata } from '../models/video_models'
 import UserModel from '../models/user_model'
 import { allTopics } from '../utils/topics'
+import UserAffinityModel, {
+  AffinityObject
+} from '../models/user_affinity_model'
+import VideoAffinityModel from '../models/video_affinity_model'
+import { generateVideoAffinities } from './video_affinity_controller'
+import { ClipMetadata } from '../models/clip_models'
+import { logger } from '../services/logger'
 
 export const getWatchHistories = async (user, queryParameters) => {
   try {
@@ -219,4 +226,84 @@ export const getRecentTopics = async (user) => {
   } catch (error) {
     throw new Error(error)
   }
+}
+
+//// Updating Active User affinity
+// Really the only thing that we need is the modifier and the current video. They accrew modifer
+//   percent based on the retention on the clip.
+// 1. Extend active affinities if theres space, evict oldest if not.
+// 2. Scale affinities based on duration, if any clip duration exceeds 60%, they should have 80%
+//    of the modifier, they should never be able to exceed 100%
+
+// Exponential Decay Weighting
+// Retention Time Weighting
+
+//// Updating Active Topics
+// This is probably going to be useful for rec engine if outputs are weird.
+// 1. Just add to the set of active topics. Most recent at end, reset topics as necessary.
+export const updateAffinity = async (
+  userId,
+  videoId,
+  clipId,
+  duration: number
+) => {
+  const userAffinity = await UserAffinityModel.findOne({ userId })
+  const videoAffinity = await VideoAffinityModel.findOne({ videoId })
+  const video = await VideoMetadata.findById(videoId)
+  const clip = await ClipMetadata.findById(clipId)
+  if (!videoAffinity) {
+    generateVideoAffinities(videoId)
+    const videoAffinity = await VideoAffinityModel.findOne({ videoId })
+  }
+  if (!userAffinity) {
+    throw new Error('User affinity not found')
+  }
+  if (!video) {
+    throw new Error('Video not found')
+  }
+  if (!clip) {
+    throw new Error('Clip not found')
+  }
+
+  var newAffinity = {} as AffinityObject
+  if (duration / clip.duration > 0.6) {
+    newAffinity['modifier'] = 0.8
+  } else {
+    const new_modifier = 0.2 * (duration / Math.min(video.duration, 100))
+    const old_modifier =
+      userAffinity.activeAffinities.find(
+        (affinity) => affinity.videoId == videoId
+      )?.modifier || 0
+    newAffinity['modifier'] = Math.min(new_modifier + old_modifier, 1)
+  }
+  newAffinity['videoId'] = videoId
+  newAffinity['timestamp'] = Date.now()
+
+  // Update active affinities
+  const activeAffinities = userAffinity.activeAffinities
+  const index = activeAffinities.findIndex(
+    (affinity) => affinity.videoId == videoId
+  )
+
+  if (index == -1) {
+    userAffinity.activeAffinities.push(newAffinity) // If no matching videoId, add new affinity
+  } else {
+    userAffinity.activeAffinities[index] = newAffinity // If matching videoId, update affinity
+  }
+
+  // Update active topics if topicId doesnt exist
+  for (let topicId of video.topicId) {
+    if (!userAffinity.activeTopics.includes(topicId)) {
+      userAffinity.activeTopics.push(topicId)
+    }
+  }
+  for (let topicId of video.inferenceTopicIds) {
+    if (!userAffinity.activeTopics.includes(topicId)) {
+      userAffinity.activeTopics.push(topicId)
+    }
+  }
+
+  // save affinity
+  const savedUserAffinity = await userAffinity.save()
+  return savedUserAffinity
 }
