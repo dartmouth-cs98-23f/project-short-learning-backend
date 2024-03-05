@@ -96,8 +96,8 @@ searchRouter.get(
       
       return res.status(200).json({
         topicVideos: [
-          { topic: topicName1, videos: topicVideos1 },
-          { topic: topicName2, videos: topicVideos2 }
+          { topic: topicName1, topicId: topic1, videos: topicVideos1 },
+          { topic: topicName2, topicId: topic2, videos: topicVideos2 }
         ],
         roleVideos: [{ role, videos: roleVideos }],
         page
