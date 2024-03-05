@@ -203,6 +203,5 @@ async function getSearchVectors(videoId?: string, userId?: string) {
 async function populateVideo(videoId: any): Promise<VideoMetadataDocument> {
   return await VideoMetadata.findById(videoId)
     .populate({ path: 'clips', options: { limit: CLIP_POP_LIMIT } })
-
     .exec()
 }

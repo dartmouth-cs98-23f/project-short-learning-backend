@@ -1,11 +1,10 @@
 import { Request, Response, Router } from 'express'
 import { requireAdmin, requireAuth } from '../services/passport'
 import { logger } from '../services/logger'
-
+import { resetActiveAffinities, updateGlobalAffinity } from '../controllers/video_affinity_controller'
 import * as VectorizedRecControllers from '../controllers/vectorized_recommendation_controllers'
 import VideoAffinityModel from '../models/video_affinity_model'
 const vectorizedRecRouter = Router()
-
 
 // TODO: When new call, updates the user's affinity
 //// Updating Global User Affinities
@@ -23,21 +22,26 @@ const vectorizedRecRouter = Router()
 //    The amount of modification should decay based on how far back the activeAffinity was added.
 /**
  * GET /recommendations/vectorized
- * 
+ *
  * @bodyparam {string} videoId - the videoId of the video to get recommendations from
  * @bodyparam {string} userId - the userId of the user to get recommendations for
  */
-vectorizedRecRouter.get('/recommendations/vectorized', requireAuth, async (req: Request, res: Response) => {
-  const videoId = req.query?.videoId?.toString() || ""
-  const user = req.user.id
-  try {
-    // const updateAffinity = await VideoAffinityModel.updateUserAffinity(user, videoId)
-    const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
-    return res.status(200).json({ results: results })
-  } catch (error) {
-    logger.error(error)
-    return res.status(500).json({ error: `Video ${videoId} not found` })
+vectorizedRecRouter.get(
+  '/recommendations/vectorized',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    const videoId = req.query?.videoId?.toString() || ''
+    const user = req.user.id
+    try {
+      const updateAffinity = await updateGlobalAffinity(user, videoId)
+      const reset = await resetActiveAffinities(user)
+      const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
+      return res.status(200).json({ results: updateAffinity })
+    } catch (error) {
+      logger.error(error)
+      return res.status(500).json({ error: `Video ${videoId} not found` })
+    }
   }
-})
+)
 
 export default vectorizedRecRouter

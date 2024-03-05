@@ -13,7 +13,7 @@ import topicRouter from './routes/topics_routes'
 import watchHistoryRouter from './routes/watch_history_routes'
 import dashboardRouter from './routes/dashboard_routes'
 import exploreRouter from './routes/explore_routes'
-import vectorizedRecRouter from './routes/vectorized-recommendations-routes'
+import vectorizedRecRouter from './routes/vectorized_recommendations_routes'
 
 const app = express()
 const port: Number = 3000
