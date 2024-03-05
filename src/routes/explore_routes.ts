@@ -3,6 +3,8 @@ import { requireAdmin, requireAuth } from '../services/passport'
 import { logger } from '../services/logger'
 import * as ExploreController from '../controllers/explore_controllers'
 import { allTopics } from '../utils/topics'
+import { reduceVideo } from '../utils/payload_reducer'
+import { log } from 'console'
 
 const searchRouter = Router()
 
@@ -94,13 +96,23 @@ searchRouter.get(
         topic2,
         1
       )
-      
+
+      const abridgedRoleVideos = roleVideos.map((video) => {
+        return reduceVideo(video)
+      })
+      const abridgedTopicVideos1 = topicVideos1.map((video) => {
+        return reduceVideo(video)
+      })
+      const abridgedTopicVideos2 = topicVideos2.map((video) => {
+        return reduceVideo(video)
+      })
+
       return res.status(200).json({
         topicVideos: [
-          { topic: topicName1, topicId: topic1, videos: topicVideos1 },
-          { topic: topicName2, topicId: topic2, videos: topicVideos2 }
+          { topic: topicName1, topicId: topic1, videos: abridgedTopicVideos1 },
+          { topic: topicName2, topicId: topic2, videos: abridgedTopicVideos2 }
         ],
-        roleVideos: [{ role, videos: roleVideos }],
+        roleVideos: [{ role, videos: abridgedRoleVideos }],
         page
       })
     } catch (error) {
@@ -135,8 +147,12 @@ searchRouter.get(
         topicId,
         page
       )
+      const abridgedResults = results.map((video) => {
+        return reduceVideo(video)
+      })
+
       const graphValues = await ExploreController.getTopicGraphValues(topicId)
-      return res.status(200).json({ videos: results, graphValues })
+      return res.status(200).json({ videos: abridgedResults, graphValues })
     } catch (error) {
       logger.error(error)
       return res.status(500).json({ error: error })
