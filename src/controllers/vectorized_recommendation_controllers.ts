@@ -34,7 +34,7 @@ export const getVideoRecommendations = async (videoId?: string, userId?: string)
       includeMetadata: true,
     })
     
-    let videoRecommendation: VideoRecommendation = {
+    let videoRecommendation: any = {
       userId: userId.length > 0 ? userId : undefined,
       videos: await Promise.all(recommendations.matches.map(async (match) => {
         // videoId is the id's value except last 4
@@ -48,6 +48,64 @@ export const getVideoRecommendations = async (videoId?: string, userId?: string)
           metadata
         }
       }))
+    }
+
+    // TODO: filter out fully-watched videos if needed
+    if (userId) {
+      const watchHistory = await WatchHistory.getWatchHistories({ id: userId }, { })
+
+      let videos = await Promise.all(videoRecommendation.videos.map( async (video) => {
+        
+        const watchHistoryRecord = watchHistory.find( async (record) => record.videoId.toString() === video.videoId)
+        
+        // if recorded clip ID, start on that clip
+        // NOTE: see comment in the first return statement
+        if (watchHistoryRecord && watchHistoryRecord.clipId) {
+
+          const clipId = watchHistoryRecord.clipId
+
+          // get the video
+          const videoMetadata = await VideoMetadata.findById(watchHistoryRecord.videoId)
+
+          // get index of current clipId in video.metadata.clips
+          const currentClipIndex = videoMetadata.clips.findIndex((clip) => clip.toString() === clipId.toString())
+
+          return {
+            ...video,
+            progress: {
+              /*
+                NOTE: We always start them on the last clip they watched in this video.
+                To change this behavior, uncomment the following line and comment the line after it.
+              */
+
+              // current: currentClipIndex + 1,
+              current: currentClipIndex,
+              total: videoMetadata.clips.length
+            },
+          }
+        }
+
+        // if no recorded clip ID, start from beginning
+        else {
+          const video = await VideoMetadata.findById(watchHistoryRecord.videoId)
+
+          return {
+            ...video,
+            progress: {
+              current: 0,
+              total: video.clips.length
+            }
+          }
+        }
+      }))
+
+      // FILTER OUT EMPTY OBJECTS and VIDEOS THAT ARE FULLY WATCHED
+      videos = videos.filter((video) => Object.keys(video).length > 0 && video.progress.current !== video.progress.total)
+
+      videoRecommendation = {
+        ...videoRecommendation,
+        videos
+      }
     }
 
     // TODO: rank videos with user affinity
