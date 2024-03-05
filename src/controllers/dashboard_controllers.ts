@@ -52,7 +52,7 @@ export const getDashboardData = async (user, queryParameters) => {
         if (!values[role]) {
           values[role] = 0
         }
-        values[role] += value * userAffinities.affinities.get(i)
+        values[role] += value as number * userAffinities.affinities.get(i)
       })
     })
     logger.debug(`values: ${values}`)
