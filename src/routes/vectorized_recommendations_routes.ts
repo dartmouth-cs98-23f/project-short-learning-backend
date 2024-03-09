@@ -33,10 +33,12 @@ vectorizedRecRouter.get(
     const videoId = req.query?.videoId?.toString() || ''
     const user = req.user.id
     try {
-      const updateAffinity = await updateGlobalAffinity(user, videoId)
-      const reset = await resetActiveAffinities(user)
+      if (videoId) {
+        const updateAffinity = await updateGlobalAffinity(user, videoId)
+        const reset = await resetActiveAffinities(user)
+      }
       const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
-      return res.status(200).json({ results: updateAffinity })
+      return res.status(200).json({ results: results })
     } catch (error) {
       logger.error(error)
       return res.status(500).json({ error: `Video ${videoId} not found` })

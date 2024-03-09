@@ -224,7 +224,6 @@ export const updateGlobalAffinity = async (userId, videoId) => {
   const userAffinity = await UserAffinityModel.findOne({ userId: userId })
   const activeAffinities = userAffinity.activeAffinities
   const affinities = userAffinity.affinities
-  logger.debug(userAffinity)
 
   if (activeAffinities.length === 0) {
     return
