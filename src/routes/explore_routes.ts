@@ -160,4 +160,30 @@ searchRouter.get(
   }
 )
 
+/**
+ * GET /explore/alltopics
+ *
+ * Used to get the explore page of a specific topic.
+ *
+ * Returns:
+ *  - allTopics: list of all topics
+ */
+searchRouter.get(
+  '/explore/alltopics',
+  requireAuth,
+  async (_: Request, res: Response) => {
+    try {
+      const topicsArray = Object.entries(allTopics).map(([topicId, topicName]) => ({
+        topicId: topicId,
+        topicName: topicName,
+      }));
+
+      return res.status(200).json({ topics: topicsArray })
+    } catch (error) {
+      logger.error(error)
+      return res.status(500).json({ error: error })
+    }
+  }
+)
+
 export default searchRouter
