@@ -31,12 +31,14 @@ vectorizedRecRouter.get(
   requireAuth,
   async (req: Request, res: Response) => {
     const videoId = req.query?.videoId?.toString() || ''
-    const user = req.user.id
+    const user = req.user
     try {
-      const updateAffinity = await updateGlobalAffinity(user, videoId)
-      const reset = await resetActiveAffinities(user)
-      const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
-      return res.status(200).json({ results: updateAffinity })
+      if (videoId) {
+        const updateAffinity = await updateGlobalAffinity(user.id, videoId)
+        const reset = await resetActiveAffinities(user.id)
+      }
+      const results = await VectorizedRecControllers.getVideoRecommendations(user, videoId)
+      return res.status(200).json({ results: results })
     } catch (error) {
       logger.error(error)
       return res.status(500).json({ error: `Video ${videoId} not found` })
