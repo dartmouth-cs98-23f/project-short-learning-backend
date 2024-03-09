@@ -24,12 +24,15 @@ export const getVideoRecommendations = async (
   userId?: string
 ) => {
   // error if neither is specified
+  logger.debug("HERE: 1")
   try {
     const index = pc.index(PINECONE_INDEX_NAME)
 
     // const videoVector = response.matches.length > 0 ? response.matches[0].values : []
     const searchVectors = await getSearchVectors(videoId, userId)
 
+    logger.debug('SEARCH VECTORS:', searchVectors)
+    logger.debug("HERE: 2")
     // get recommendations for video_id
     const recommendations = await index.query({
       vector: searchVectors,
@@ -37,6 +40,8 @@ export const getVideoRecommendations = async (
       includeMetadata: true
     })
 
+    logger.debug("HERE: 3")
+    logger.debug('RECOMMENDATIONS:', recommendations)
     let videoRecommendation: any = {
       userId: userId.length > 0 ? userId : undefined,
       videos: await Promise.all(
@@ -57,6 +62,8 @@ export const getVideoRecommendations = async (
       )
     }
 
+    logger.debug("HERE: 4")
+
     // TODO: filter out fully-watched videos if needed
     if (userId) {
       const watchHistory = await WatchHistory.getWatchHistories(
@@ -64,70 +71,73 @@ export const getVideoRecommendations = async (
         {}
       )
 
-      let videos = await Promise.all(
-        videoRecommendation.videos.map(async (video) => {
-          const watchHistoryRecord = watchHistory.find(
-            async (record) => record.videoId.toString() === video.videoId
-          )
+      logger.debug("HERE: 5")
+      // let videos = await Promise.all(
+      //   videoRecommendation.videos.map(async (video) => {
+      //     const watchHistoryRecord = watchHistory.find(
+      //       async (record) => record.videoId.toString() === video.videoId
+      //     )
 
-          // if recorded clip ID, start on that clip
-          // NOTE: see comment in the first return statement
-          if (watchHistoryRecord && watchHistoryRecord.clipId) {
-            const clipId = watchHistoryRecord.clipId
+      //     // if recorded clip ID, start on that clip
+      //     // NOTE: see comment in the first return statement
+      //     if (watchHistoryRecord && watchHistoryRecord.clipId) {
+      //       const clipId = watchHistoryRecord.clipId
 
-            // get the video
-            const videoMetadata = await VideoMetadata.findById(
-              watchHistoryRecord.videoId
-            )
+      //       // get the video
+      //       const videoMetadata = await VideoMetadata.findById(
+      //         watchHistoryRecord.videoId
+      //       )
 
-            // get index of current clipId in video.metadata.clips
-            const currentClipIndex = videoMetadata.clips.findIndex(
-              (clip) => clip.toString() === clipId.toString()
-            )
+      //       // get index of current clipId in video.metadata.clips
+      //       const currentClipIndex = videoMetadata.clips.findIndex(
+      //         (clip) => clip.toString() === clipId.toString()
+      //       )
+      //       logger.debug("HERE: 6")
+      //       return {
+      //         ...video,
+      //         progress: {
+      //           /*
+      //           NOTE: We always start them on the last clip they watched in this video.
+      //           To change this behavior, uncomment the following line and comment the line after it.
+      //         */
 
-            return {
-              ...video,
-              progress: {
-                /*
-                NOTE: We always start them on the last clip they watched in this video.
-                To change this behavior, uncomment the following line and comment the line after it.
-              */
+      //           // current: currentClipIndex + 1,
+      //           current: currentClipIndex,
+      //           total: videoMetadata.clips.length
+      //         }
+      //       }
+      //     }
 
-                // current: currentClipIndex + 1,
-                current: currentClipIndex,
-                total: videoMetadata.clips.length
-              }
-            }
-          }
+      //     // if no recorded clip ID, start from beginning
+      //     else {
+      //       const video = await VideoMetadata.findById(
+      //         watchHistoryRecord.videoId
+      //       )
 
-          // if no recorded clip ID, start from beginning
-          else {
-            const video = await VideoMetadata.findById(
-              watchHistoryRecord.videoId
-            )
+      //       return {
+      //         ...video,
+      //         progress: {
+      //           current: 0,
+      //           total: video.clips.length
+      //         }
+      //       }
+      //     }
+      //   })
+      // )
 
-            return {
-              ...video,
-              progress: {
-                current: 0,
-                total: video.clips.length
-              }
-            }
-          }
-        })
-      )
+      logger.debug("HERE: 6")
 
       // FILTER OUT EMPTY OBJECTS and VIDEOS THAT ARE FULLY WATCHED
-      videos = videos.filter(
-        (video) =>
-          Object.keys(video).length > 0 &&
-          video.progress.current !== video.progress.total
-      )
+    //   videos = videos.filter(
+    //     (video) =>
+    //       Object.keys(video).length > 0 &&
+    //       video.progress.current !== video.progress.total
+    //   )
 
-      videoRecommendation = {
-        ...videoRecommendation,
-        videos
-      }
+    //   videoRecommendation = {
+    //     ...videoRecommendation,
+    //     videos
+    //   }
     }
 
     // TODO: rank videos with user affinity
@@ -144,6 +154,7 @@ async function getSearchVectors(videoId?: string, userId?: string) {
 
   try {
     // if videoId is specified, get vectors for video_id
+    logger.debug('\n\nVIDEO ID:', videoId)
     if (videoId) {
       const index = pc.index(PINECONE_INDEX_NAME)
 
@@ -152,14 +163,18 @@ async function getSearchVectors(videoId?: string, userId?: string) {
         id: `${videoId}_avg`,
         includeValues: true,
         topK: 1
+      }).then((response) => {
+        logger.debug('RESPONSE:', response)
+        return response
+      
       })
-
+      // logger.debug('RE1SPONSE:', response)
       if (response.matches.length !== 1) {
         throw new Error(`NO VIDEO "${videoId}" FOUND IN PINECONE`)
       }
 
       vectors = response.matches.length > 0 ? response.matches[0].values : []
-
+      logger.debug('VECTORS:', vectors)
       return vectors
     } else if (userId) {
       // if userId is specified, get vectors for user_id from watch history

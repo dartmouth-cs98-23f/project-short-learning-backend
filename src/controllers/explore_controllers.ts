@@ -137,6 +137,7 @@ function accumulateTopics(results: any): TopicResult[] {
       _topics[topic] += 1
     })
   })
+  logger.debug(results)
 
   let sortedArray = []
   for (let k in _topics) {

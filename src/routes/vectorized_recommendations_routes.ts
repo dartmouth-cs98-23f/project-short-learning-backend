@@ -1,7 +1,10 @@
 import { Request, Response, Router } from 'express'
 import { requireAdmin, requireAuth } from '../services/passport'
 import { logger } from '../services/logger'
-import { resetActiveAffinities, updateGlobalAffinity } from '../controllers/video_affinity_controller'
+import {
+  resetActiveAffinities,
+  updateGlobalAffinity
+} from '../controllers/video_affinity_controller'
 import * as VectorizedRecControllers from '../controllers/vectorized_recommendation_controllers'
 import VideoAffinityModel from '../models/video_affinity_model'
 const vectorizedRecRouter = Router()
@@ -30,16 +33,28 @@ vectorizedRecRouter.get(
   '/recommendations/vectorized',
   requireAuth,
   async (req: Request, res: Response) => {
-    const videoId = req.query?.videoId?.toString() || ''
-    const user = req.user.id
+    const copyQuery = JSON.parse(JSON.stringify(req.query))
+    logger.debug('QUERY', JSON.stringify(req.query))
+    logger.debug('COPY QUERY', copyQuery)
+    const videoId = req.query?.videoId?.toString()
     try {
-      const updateAffinity = await updateGlobalAffinity(user, videoId)
-      const reset = await resetActiveAffinities(user)
-      const results = await VectorizedRecControllers.getVideoRecommendations(videoId, user)
-      return res.status(200).json({ results: updateAffinity })
+      logger.debug(`VIDEO ID in ROUTE: `, videoId)
+      const user = req.user?.id
+      // const updateAffinity = await updateGlobalAffinity(user, videoId)
+      // const reset = await resetActiveAffinities(user)
+      var results = undefined
+      if (videoId && user) {
+
+        logger.debug("GOT N HERE")
+        results = await VectorizedRecControllers.getVideoRecommendations(
+          videoId,
+          user
+        )
+      }
+      return res.status(200).json({ results: results })
     } catch (error) {
       logger.error(error)
-      return res.status(500).json({ error: `Video ${videoId} not found` })
+      return res.status(500).json({ error: `not ${videoId} found` })
     }
   }
 )
