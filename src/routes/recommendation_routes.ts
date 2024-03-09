@@ -13,6 +13,7 @@ import {
   getTopicsRecommendation,
   updatePrecomputedRecommendation
 } from '../controllers/recommendation_controllers'
+import { getTopTopics } from '../controllers/explore_controllers'
 const recommendationRouter = Router()
 
 /**
@@ -113,8 +114,7 @@ recommendationRouter.get(
 /**
  * GET request to get a list of topic recommendations
  * 
- * @returns message // a message indicating success or failure
- *          topics: TopicMetadataDocument[] // the topics
+  * @optionalqueryparam limit: number // the number of topics to get
  */
 
 recommendationRouter.get(
@@ -122,7 +122,10 @@ recommendationRouter.get(
   requireAuth,
   async (req: Request, res: Response) => {
     try {
-      getTopicsRecommendation(req, res)
+      const userId = req.user.id
+      const limit = req.query.limit ? parseInt(req.query.limit.toString()) : 10
+      const topics = await getTopTopics(userId, limit)
+      return res.status(200).json({ topics })
     } catch (error) {
       return res.status(500).json({ message: 'Server Error' })
     }
