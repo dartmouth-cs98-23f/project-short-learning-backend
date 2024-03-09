@@ -19,10 +19,8 @@ const pc = new Pinecone({
  * @param userId  userId of the user to get recommendations for
  * @returns a list of VideoRecommendation objects
  */
-export const getVideoRecommendations = async (
-  videoId?: string,
-  userId?: string
-) => {
+export const getVideoRecommendations = async (user, videoId?: string) => {
+  const userId = user.id
   // error if neither is specified
   try {
     const index = pc.index(PINECONE_INDEX_NAME)
@@ -59,10 +57,7 @@ export const getVideoRecommendations = async (
 
     // TODO: filter out fully-watched videos if needed
     if (userId) {
-      const watchHistory = await WatchHistory.getWatchHistories(
-        { id: userId },
-        {}
-      )
+      const watchHistory = await WatchHistory.getWatchHistories(user, {})
 
       let videos = await Promise.all(
         videoRecommendation.videos.map(async (video) => {

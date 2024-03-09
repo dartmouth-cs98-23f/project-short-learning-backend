@@ -51,7 +51,7 @@ if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
       format,
-      level: 'silly'
+      level: 'debug'
     })
   )
 }

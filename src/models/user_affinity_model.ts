@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose'
 import { allTopics } from '../utils/topics'
 import { logger } from '../services/logger'
 
-const MAX_ACTIVE_AFFINITIES = 10
+export const MAX_ACTIVE_AFFINITIES = 10
 
 export interface AffinityObject {
   modifier: number
@@ -20,7 +20,12 @@ export interface UserAffinityDocument extends mongoose.Document {
 
 const UserAffinitySchema = new Schema<UserAffinityDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      unique: true
+    },
     affinities: { type: Map, of: Number, required: false },
     complexities: { type: Map, of: Number, required: false },
     activeAffinities: {

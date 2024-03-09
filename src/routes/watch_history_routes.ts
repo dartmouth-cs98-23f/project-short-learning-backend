@@ -4,6 +4,7 @@ import { requireAuth, requireAdmin } from '../services/passport'
 import { stat } from 'fs'
 import { ClipMetadata } from '../models/clip_models'
 import { VideoMetadata } from '../models/video_models'
+import { logger } from '../services/logger'
 
 const watchHistoryRouter = Router()
 
@@ -117,6 +118,52 @@ watchHistoryRouter.post(
     }
   }
 )
+
+watchHistoryRouter.post(
+  '/testmany',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const clipIds: string[] = req.body.clipIds
+      const durations: number[] = req.body.durations.map((duration: string) => parseInt(duration))
+      const videoIds = req.body.videoIds
+      const watchHistories = []
+      const affinityUpdates = []
+      for (var i = 0; i < clipIds.length; i++) {
+        if (!clipIds[i] || !durations[i]) {
+          logger.error('Clip ID and duration are asdf')
+          throw new Error('Clip ID and duration are required')
+        }
+        if (isNaN(durations[i])) {
+          throw new Error('Duration must be a number')
+        }
+        if (!ClipMetadata.findById(clipIds[i])) {
+          throw new Error('Clip ID not found')
+        }
+        if (!VideoMetadata.findById(videoIds[i])) {
+          throw new Error('Video ID not found')
+        }
+        const watchHistory = await WatchHistory.insertWatchHistory(
+          req.user,
+          { videoId: videoIds[i] },
+          { clipId: clipIds[i], duration: durations[i] }
+        )
+        const affinityUpdate = await WatchHistory.updateAffinity(
+          req.user.id,
+          videoIds[i],
+          clipIds[i],
+          durations[i]
+        )
+        watchHistories.push(watchHistory)
+        affinityUpdates.push(affinityUpdate)
+      }
+      res.status(200).json({ history: watchHistories[0], affinity: affinityUpdates[0] })
+    } catch (error) {
+      res.status(422).json({ error: error.message })
+    }
+  }
+)
+
 
 /**
  * DELETE request to delete a watch history
