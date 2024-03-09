@@ -1,6 +1,8 @@
+import { Request, Response } from 'express'
 import jwt from 'jwt-simple'
 import User, { UserDocument } from '../models/user_model'
 import UserAffinity from '../models/user_affinity_model'
+import { VideoMetadata } from '../models/video_models'
 import { sendEmail } from '../utils/sendEmail'
 import UserModel from '../models/user_model'
 import { logger } from '../services/logger'
@@ -184,6 +186,40 @@ export const savePlaylist = async (user, { playlistId, saved }) => {
     await userToSave.save() // Save the updated document
     return true
   } catch (error) {
+    throw new Error(error)
+  }
+}
+
+export const getSavedPlaylists = async (req: Request, res: Response) => {
+  const userId = req.user.id
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    const savedIds = user.savedPlaylists;
+
+    // Map each ID to a video
+    const saved = await Promise.all(
+      savedIds.map(async (videoId) => {
+        const metadata = await VideoMetadata.findById(videoId)
+            .select('-clips')
+            .exec()
+
+          if (!metadata) {
+            throw new Error(`Video with ${videoId} not found.`);
+          }
+
+          return metadata;
+      })
+    );
+
+    return res.status(200).json({ playlists: saved })
+  } catch (error) {
+    logger.error(error)
     throw new Error(error)
   }
 }

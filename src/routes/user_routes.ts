@@ -215,6 +215,25 @@ router.put('/user/savePlaylist', requireAuth, async (req, res) => {
   }
 })
 
+/**
+ * GET request for saved playlists
+ *  - See src/models.user_model.ts for the User schema
+ *
+ * @headerparam Authorization is the user's token
+ *
+ * @returns success
+ *
+ * @errors
+ *        401 // if unauthorized
+ */
+router.get('/user/savedPlaylists', requireAuth, async (req, res) => {
+  try {
+    await User.getSavedPlaylists(req, res)
+  } catch (error) {
+    res.status(401).send({ error: error.toString() })
+  }
+})
+
 router.post('/user/onboarding', requireAuth, async (req, res) => {
   try {
     const onBoarded = await User.onboarding(req.user, req.body)
