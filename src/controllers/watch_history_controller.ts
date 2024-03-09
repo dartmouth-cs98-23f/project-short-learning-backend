@@ -3,7 +3,8 @@ import { VideoMetadata } from '../models/video_models'
 import UserModel from '../models/user_model'
 import { allTopics } from '../utils/topics'
 import UserAffinityModel, {
-  AffinityObject
+  AffinityObject,
+  MAX_ACTIVE_AFFINITIES
 } from '../models/user_affinity_model'
 import VideoAffinityModel from '../models/video_affinity_model'
 import { generateVideoAffinities } from './video_affinity_controller'
@@ -266,16 +267,18 @@ export const updateAffinity = async (
   }
 
   var newAffinity = {} as AffinityObject
-  if (duration / clip.duration > 0.6) {
+  const old_modifier =
+    userAffinity.activeAffinities.find(
+      (affinity) => affinity.videoId == videoId
+    )?.modifier || 0
+  logger.debug(`Old Modifier: ${old_modifier}`)
+  if (duration / clip.duration > 0.6 && old_modifier < 0.8) {
     newAffinity['modifier'] = 0.8
-  } else {
-    const new_modifier = 0.2 * (duration / Math.min(video.duration, 100))
-    const old_modifier =
-      userAffinity.activeAffinities.find(
-        (affinity) => affinity.videoId == videoId
-      )?.modifier || 0
-    newAffinity['modifier'] = Math.min(new_modifier + old_modifier, 1)
   }
+  const new_modifier = 0.2 * (duration / Math.min(video.duration, 100))
+
+  newAffinity['modifier'] = Math.min(new_modifier + old_modifier, 1) // Limit scalar to 100%
+
   newAffinity['videoId'] = videoId
   newAffinity['timestamp'] = Date.now()
 
@@ -284,13 +287,6 @@ export const updateAffinity = async (
   const index = activeAffinities.findIndex(
     (affinity) => affinity.videoId == videoId
   )
-
-  if (index == -1) {
-    userAffinity.activeAffinities.push(newAffinity) // If no matching videoId, add new affinity
-  } else {
-    userAffinity.activeAffinities[index] = newAffinity // If matching videoId, update affinity
-  }
-
   // Update active topics if topicId doesnt exist
   for (let topicId of video.topicId) {
     if (!userAffinity.activeTopics.includes(topicId)) {
@@ -301,6 +297,20 @@ export const updateAffinity = async (
     if (!userAffinity.activeTopics.includes(topicId)) {
       userAffinity.activeTopics.push(topicId)
     }
+  }
+  logger.debug(index)
+  if (index == -1) {
+    await userAffinity.updateOne({
+      $push: {
+        activeAffinities: {
+          $each: [newAffinity],
+          $sort: { timestamp: 1 }, // Ascending sort means older entries first
+          $slice: -(MAX_ACTIVE_AFFINITIES - 1) // Keep only the last (most recent) 10 items
+        }
+      }
+    })
+  } else {
+    userAffinity.activeAffinities[index] = newAffinity // If matching videoId, update affinity
   }
 
   // save affinity
