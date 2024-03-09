@@ -13,7 +13,7 @@ import { VideoMetadata } from '../models/video_models'
 import UserModel from '../models/user_model'
 import { Pinecone } from '@pinecone-database/pinecone'
 import { roleAffinities, roleTopics } from '../utils/roles'
-import { indexedMap, reverseIndexedMap } from '../utils/topics'
+import { allTopicsReverse, indexedMap, reverseIndexedMap } from '../utils/topics'
 import UserAffinityModel from '../models/user_affinity_model'
 import { CLIP_POP_LIMIT } from '../utils/globals'
 
@@ -137,6 +137,7 @@ function accumulateTopics(results: any): TopicResult[] {
       _topics[topic] += 1
     })
   })
+  logger.debug(_topics)
 
   let sortedArray = []
   for (let k in _topics) {
@@ -147,8 +148,11 @@ function accumulateTopics(results: any): TopicResult[] {
   sortedArray.sort((a, b) => b.v - a.v)
 
   let topics: TopicResult[] = sortedArray.map((topic) => {
+    const topicId = allTopicsReverse[topic['k']]
+    logger.debug(topicId)
     return {
       topic: topic['k'],
+      topicId: topicId,
       score: topic['v']
     }
   })
